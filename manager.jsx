@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import PhoneFullscreen from "./phone-fullscreen.jsx";
 import {
   ShopIcon,
   CalendarIcon,
@@ -18,17 +19,17 @@ import "./manager.css";
 
 const DATE = "2026-10-09";
 const dateText = (value) =>
-  new Date(value + "T12:00:00").toLocaleDateString("id-ID", {
+  new Date(value + "T12:00:00").toLocaleDateString("en-GB", {
     weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
   });
-const money = (n) => "Rp" + Number(n).toLocaleString("id-ID");
+const money = (n) => "Rp" + Number(n).toLocaleString("en-GB");
 const initialBusiness = {
   name: "Di Bawah Pohon Barber & Shop Kemang",
   description:
-    "Spesialis grooming pria yang mengutamakan kualitas potongan dan pengalaman perawatan.",
+    "Expert men’s grooming focused on quality cuts and personal care.",
   address: "Jl. Kemang Raya No. 88A, Mampang Prapatan, Jakarta Selatan",
   phone: "",
   zone: "Asia/Jakarta",
@@ -37,7 +38,7 @@ const initialServices = [
   {
     id: 1,
     name: "Haircut by Certified Barber",
-    description: "Konsultasi, potong rambut, dan styling.",
+    description: "Consultation, haircut, and styling.",
     duration: 45,
     price: 230000,
     staff: ["Esta", "Dee", "Adi"],
@@ -46,7 +47,7 @@ const initialServices = [
   {
     id: 2,
     name: "Beard Trim",
-    description: "Rapikan dan bentuk janggut sesuai preferensi pelanggan.",
+    description: "Beard trimming and shaping to suit your preferences.",
     duration: 30,
     price: 75000,
     staff: ["Esta", "Adi"],
@@ -54,19 +55,19 @@ const initialServices = [
   },
 ];
 const people = [
-  ["CS-1041", "Nadia Putri", "Dee", "09:00", "09:45", "Sedang dilayani", 1],
+  ["CS-1041", "Nadia Putri", "Dee", "09:00", "09:45", "In service", 1],
   [
     "CS-1043",
     "Drestayumna Nurmareko",
     "Esta",
     "09:30",
     "10:15",
-    "Sudah datang",
+    "Arrived",
     1,
   ],
-  ["CS-1045", "Raka Pradana", "Adi", "09:45", "10:30", "Terjadwal", 1],
-  ["CS-1047", "Bima Pratama", "Esta", "11:00", "11:30", "Terjadwal", 2],
-  ["CS-1049", "Arif Rahman", "Esta", "14:00", "14:45", "Terjadwal", 1],
+  ["CS-1045", "Raka Pradana", "Adi", "09:45", "10:30", "Scheduled", 1],
+  ["CS-1047", "Bima Pratama", "Esta", "11:00", "11:30", "Scheduled", 2],
+  ["CS-1049", "Arif Rahman", "Esta", "14:00", "14:45", "Scheduled", 1],
 ];
 const initialReservations = people.map(
   ([id, name, staff, start, end, status, serviceId]) => ({
@@ -79,22 +80,22 @@ const initialReservations = people.map(
     date: DATE,
     service: { ...initialServices.find((s) => s.id === serviceId) },
     activity: [
-      { title: "Reservasi dibuat", actor: name, time: "8 Okt 2026, 19:20" },
-      ...(status !== "Terjadwal"
+      { title: "Reservation created", actor: name, time: "8 Oct 2026, 19:20" },
+      ...(status !== "Scheduled"
         ? [
             {
-              title: "Kedatangan dikonfirmasi",
-              actor: "Maya (Manajer)",
-              time: "9 Okt 2026, 08:55",
+              title: "Arrival confirmed",
+              actor: "Maya (Manager)",
+              time: "9 Oct 2026, 08:55",
             },
           ]
         : []),
-      ...(status === "Sedang dilayani"
+      ...(status === "In service"
         ? [
             {
-              title: "Pelayanan dimulai",
+              title: "Service started",
               actor: staff + " (Barber)",
-              time: "9 Okt 2026, 09:02",
+              time: "9 Oct 2026, 09:02",
             },
           ]
         : []),
@@ -102,26 +103,26 @@ const initialReservations = people.map(
   }),
 );
 const initialHours = [
-  "Senin",
-  "Selasa",
-  "Rabu",
-  "Kamis",
-  "Jumat",
-  "Sabtu",
-  "Minggu",
-].map((day) => ({ day, open: day !== "Senin", start: "09:00", end: "21:00" }));
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+].map((day) => ({ day, open: day !== "Monday", start: "09:00", end: "21:00" }));
 const pages = [
   ["frontdesk", "Front Desk", UserIcon],
-  ["reservations", "Reservasi", CalendarIcon],
-  ["detail", "Detail reservasi", InfoIcon],
-  ["manage", "Kelola usaha", SettingsIcon],
-  ["business", "Profil usaha", ShopIcon],
-  ["services", "Layanan", CutIcon],
-  ["service", "Ubah layanan", EditIcon],
-  ["hours", "Jam operasional", ClockIcon],
-  ["staff", "Staf", UserIcon],
-  ["schedule", "Jadwal staf", CalendarIcon],
-  ["activity", "Riwayat aktivitas", ClockIcon],
+  ["reservations", "Reservations", CalendarIcon],
+  ["detail", "Reservation details", InfoIcon],
+  ["manage", "Manage business", SettingsIcon],
+  ["business", "Business profile", ShopIcon],
+  ["services", "Services", CutIcon],
+  ["service", "Edit service", EditIcon],
+  ["hours", "Business hours", ClockIcon],
+  ["staff", "Staff", UserIcon],
+  ["schedule", "Staff schedule", CalendarIcon],
+  ["activity", "Activity history", ClockIcon],
 ];
 
 function Icon({ as: Component = ArrowRightIcon, size = 20 }) {
@@ -195,11 +196,11 @@ function Modal({ value, close }) {
           close();
         }}
       >
-        {value.label || "Konfirmasi"}
+        {value.label || "Confirm"}
         <Icon as={TickIcon} />
       </Button>
       <Button secondary onClick={close}>
-        Kembali
+        Back
       </Button>
     </dialog>
   );
@@ -236,7 +237,7 @@ export default function ManagerApp() {
       breakStart: "12:00",
       breakEnd: "13:00",
     }),
-    [shiftDay, setShiftDay] = useState("Jumat");
+    [shiftDay, setShiftDay] = useState("Friday");
   const scroll = useRef(null);
   const go = (target) => {
     setHistory((h) => [...h, screen]);
@@ -256,7 +257,8 @@ export default function ManagerApp() {
     scroll.current?.scrollTo(0, 0);
   }, [screen]);
   useEffect(() => {
-    document.title = "Care Space — Manager Wireframe";
+    document.title = "Care Space — Manager";
+    document.documentElement.lang = "en";
   }, []);
   useEffect(() => {
     if (toast) {
@@ -269,7 +271,7 @@ export default function ManagerApp() {
       {
         title,
         detail,
-        time: new Date().toLocaleTimeString("id-ID", {
+        time: new Date().toLocaleTimeString("en-GB", {
           hour: "2-digit",
           minute: "2-digit",
         }),
@@ -283,9 +285,9 @@ export default function ManagerApp() {
   };
   const item = reservations.find((r) => r.id === selected),
     found = reservations.find((r) => r.id === searched),
-    scheduled = reservations.filter((r) => r.status === "Terjadwal"),
+    scheduled = reservations.filter((r) => r.status === "Scheduled"),
     arrived = reservations.filter((r) =>
-      ["Sudah datang", "Sedang dilayani", "Selesai"].includes(r.status),
+      ["Arrived", "In service", "Completed"].includes(r.status),
     );
   const openDetail = (r) => {
     setSelected(r.id);
@@ -293,10 +295,10 @@ export default function ManagerApp() {
   };
   function transition(r, status) {
     const title = {
-      "Sudah datang": "Kedatangan dikonfirmasi",
-      "Sedang dilayani": "Pelayanan dimulai",
-      Selesai: "Pelayanan diselesaikan",
-      Dibatalkan: "Reservasi dibatalkan",
+      "Arrived": "Arrival confirmed",
+      "In service": "Service started",
+      Completed: "Service completed",
+      Cancelled: "Reservation cancelled",
     }[status];
     setReservations((all) =>
       all.map((x) =>
@@ -308,10 +310,10 @@ export default function ManagerApp() {
                 ...x.activity,
                 {
                   title,
-                  actor: "Maya (Manajer)",
+                  actor: "Maya (Manager)",
                   time:
-                    "Sesi demo · " +
-                    new Date().toLocaleTimeString("id-ID", {
+                    "Session · " +
+                    new Date().toLocaleTimeString("en-GB", {
                       hour: "2-digit",
                       minute: "2-digit",
                     }),
@@ -326,11 +328,11 @@ export default function ManagerApp() {
   }
   function confirmArrival(r) {
     setModal({
-      title: "Konfirmasi kedatangan?",
+      title: "Confirm arrival?",
       body:
-        r.name + " · " + r.id + ". Pastikan pelanggan sudah berada di tempat.",
-      label: "Ya, sudah datang",
-      action: () => transition(r, "Sudah datang"),
+        r.name + " · " + r.id + ". Make sure the customer is here.",
+      label: "Yes, confirm arrival",
+      action: () => transition(r, "Arrived"),
     });
   }
   function Reservation({ r }) {
@@ -345,7 +347,7 @@ export default function ManagerApp() {
           <h3>{r.name}</h3>
           <p>{r.service.name}</p>
           <p>
-            {r.staff} · {r.service.duration} menit
+            {r.staff} · {r.service.duration} min
           </p>
           <span className="manager-status">{r.status}</span>
         </span>
@@ -368,9 +370,9 @@ export default function ManagerApp() {
     );
   }
   const nextStatus = {
-    Terjadwal: "Sudah datang",
-    "Sudah datang": "Sedang dilayani",
-    "Sedang dilayani": "Selesai",
+    Scheduled: "Arrived",
+    "Arrived": "In service",
+    "In service": "Completed",
   };
   let content;
   switch (screen) {
@@ -381,14 +383,14 @@ export default function ManagerApp() {
             <Icon as={CalendarIcon} />
             {dateText(DATE)}
           </p>
-          <p className="text-xs muted">Tanggal skenario: 9 Oktober 2026</p>
+          <p className="text-xs muted">Date: 9 October 2026</p>
           <div className="manager-field">
-            <span>Kode pemesanan</span>
+            <span>Booking code</span>
             <div className="manager-search">
               <wired-input
-                aria-label="Kode pemesanan"
+                aria-label="Booking code"
                 value={query}
-                placeholder="Contoh: CS-1045"
+                placeholder="e.g. CS-1045"
                 onInput={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter")
@@ -396,7 +398,7 @@ export default function ManagerApp() {
                 }}
               />
               <Button onClick={() => setSearched(query.trim().toUpperCase())}>
-                Cari
+                Search
                 <Icon as={SearchIcon} />
               </Button>
             </div>
@@ -404,7 +406,7 @@ export default function ManagerApp() {
           {found ? (
             <Panel>
               <div className="between">
-                <span className="text-xs muted">Reservasi ditemukan</span>
+                <span className="text-xs muted">Reservation found</span>
                 <span className="manager-status">{found.status}</span>
               </div>
               <h2>{found.name}</h2>
@@ -412,22 +414,22 @@ export default function ManagerApp() {
               <p className="text-xs muted">
                 {dateText(found.date)} · {found.start}–{found.end}
                 <br />
-                Barber: {found.staff} · {found.service.duration} menit
+                Barber: {found.staff} · {found.service.duration} min
               </p>
               <wired-divider />
-              {found.status === "Terjadwal" ? (
+              {found.status === "Scheduled" ? (
                 <>
                   <p className="text-xs muted">
-                    Pastikan pelanggan sudah berada di tempat.
+                    Make sure the customer is here.
                   </p>
                   <Button onClick={() => confirmArrival(found)}>
                     <Icon as={TickIcon} />
-                    Konfirmasi kedatangan
+                    Confirm arrival
                   </Button>
                 </>
               ) : (
                 <Button secondary onClick={() => openDetail(found)}>
-                  Lihat detail reservasi
+                  View reservation details
                   <Icon />
                 </Button>
               )}
@@ -435,19 +437,19 @@ export default function ManagerApp() {
           ) : (
             <div className="manager-empty">
               <Icon as={SearchIcon} size={32} />
-              <h3>Reservasi tidak ditemukan</h3>
-              <p>Coba CS-1045, CS-1041, atau cari di daftar reservasi.</p>
+              <h3>Reservation not found</h3>
+              <p>Try CS-1045, CS-1041, or search the reservation list.</p>
               <Button secondary onClick={() => go("reservations")}>
-                Lihat reservasi
+                View reservations
                 <Icon />
               </Button>
             </div>
           )}
-          <h2>Kedatangan hari ini</h2>
+          <h2>Today’s arrivals</h2>
           <div className="tabs">
             {[
-              ["pending", "Belum datang", scheduled.length],
-              ["arrived", "Sudah datang", arrived.length],
+              ["pending", "Not arrived", scheduled.length],
+              ["arrived", "Arrived", arrived.length],
             ].map(([key, label, count]) => (
               <button
                 key={key}
@@ -463,7 +465,7 @@ export default function ManagerApp() {
           ))}
           {!(arrivalTab === "pending" ? scheduled : arrived).length && (
             <p className="manager-empty">
-              Tidak ada pelanggan dalam daftar ini.
+              No customers in this list.
             </p>
           )}
         </>
@@ -479,19 +481,19 @@ export default function ManagerApp() {
       content = (
         <>
           <Field
-            label="Tanggal reservasi"
+            label="Reservation date"
             type="date"
             value={filterDate}
             onChange={setFilterDate}
           />
           <div className="manager-filter-grid">
             <Select
-              label="Staf"
+              label="Staff"
               value={filterStaff}
               onChange={setFilterStaff}
               options={["all", "Esta", "Dee", "Adi"].map((x) => [
                 x,
-                x === "all" ? "Semua staf" : x,
+                x === "all" ? "All staff" : x,
               ])}
             />
             <Select
@@ -500,16 +502,16 @@ export default function ManagerApp() {
               onChange={setFilterStatus}
               options={[
                 "all",
-                "Terjadwal",
-                "Sudah datang",
-                "Sedang dilayani",
-                "Selesai",
-                "Dibatalkan",
-              ].map((x) => [x, x === "all" ? "Semua status" : x])}
+                "Scheduled",
+                "Arrived",
+                "In service",
+                "Completed",
+                "Cancelled",
+              ].map((x) => [x, x === "all" ? "All statuses" : x])}
             />
           </div>
           <div className="between">
-            <span className="text-xs muted">{filtered.length} reservasi</span>
+            <span className="text-xs muted">{filtered.length} reservations</span>
             <button
               className="link text-xs"
               onClick={() => {
@@ -518,7 +520,7 @@ export default function ManagerApp() {
                 setFilterStatus("all");
               }}
             >
-              Reset filter
+              Reset filters
             </button>
           </div>
           {filtered.map((r) => (
@@ -527,8 +529,8 @@ export default function ManagerApp() {
           {!filtered.length && (
             <div className="manager-empty">
               <Icon as={CalendarIcon} size={36} />
-              <h2>Tidak ada reservasi</h2>
-              <p>Ubah filter untuk melihat reservasi.</p>
+              <h2>No reservations</h2>
+              <p>Change the filters to see reservations.</p>
             </div>
           )}
         </>
@@ -542,7 +544,7 @@ export default function ManagerApp() {
             <span>{item.id}</span>
             <span className="manager-status">{item.status}</span>
           </div>
-          <h2>Pelanggan</h2>
+          <h2>Customer</h2>
           <div className="inline">
             <span className="avatar">
               {item.name
@@ -557,27 +559,27 @@ export default function ManagerApp() {
             </div>
           </div>
           <wired-divider />
-          <h2>Jadwal reservasi</h2>
+          <h2>Reservation schedule</h2>
           <p className="inline">
             <Icon as={CalendarIcon} />
             {dateText(item.date)}
           </p>
           <p className="inline">
             <Icon as={ClockIcon} />
-            {item.start}–{item.end} · {item.service.duration} menit
+            {item.start}–{item.end} · {item.service.duration} min
           </p>
           <wired-divider />
-          <h2>Layanan</h2>
+          <h2>Services</h2>
           <h3 className="inline">
             <Icon as={CutIcon} />
             {item.service.name}
           </h3>
           <div className="between">
-            <span className="muted text-xs">Perkiraan biaya layanan</span>
+            <span className="muted text-xs">Estimated service cost</span>
             <strong>{money(item.service.price)}</strong>
           </div>
           <wired-divider />
-          <h2>Aktivitas</h2>
+          <h2>Activity</h2>
           <ol className="manager-timeline">
             {item.activity.map((a, i) => (
               <li key={i}>
@@ -591,52 +593,52 @@ export default function ManagerApp() {
           <div className="manager-notice">
             <Icon as={ClockIcon} />
             <p>
-              {item.status === "Sedang dilayani"
-                ? "Pelayanan sedang ditangani oleh " + item.staff + "."
-                : "Status saat ini: " + item.status + "."}
+              {item.status === "In service"
+                ? "Service is being provided by " + item.staff + "."
+                : "Current status: " + item.status + "."}
             </p>
           </div>
           {nextStatus[item.status] && (
             <Button
               onClick={() =>
-                item.status === "Terjadwal"
+                item.status === "Scheduled"
                   ? confirmArrival(item)
                   : setModal({
                       title:
-                        nextStatus[item.status] === "Selesai"
-                          ? "Selesaikan pelayanan?"
-                          : "Mulai pelayanan?",
+                        nextStatus[item.status] === "Completed"
+                          ? "Complete service?"
+                          : "Start service?",
                       body:
-                        "Perbarui status " + item.name + " pada sesi demo ini.",
+                        "Update the status for " + item.name + ".",
                       action: () => transition(item, nextStatus[item.status]),
                     })
               }
             >
-              {item.status === "Terjadwal"
-                ? "Konfirmasi kedatangan"
-                : item.status === "Sudah datang"
-                  ? "Mulai pelayanan"
-                  : "Selesaikan pelayanan"}
+              {item.status === "Scheduled"
+                ? "Confirm arrival"
+                : item.status === "Arrived"
+                  ? "Start service"
+                  : "Complete service"}
               <Icon as={TickIcon} />
             </Button>
           )}
-          {["Terjadwal", "Sudah datang"].includes(item.status) && (
+          {["Scheduled", "Arrived"].includes(item.status) && (
             <Button
               secondary
               onClick={() =>
                 setModal({
-                  title: "Batalkan reservasi?",
+                  title: "Cancel reservation?",
                   body:
                     item.name +
                     " · " +
                     item.id +
-                    ". Tindakan ini hanya memengaruhi data demo.",
-                  label: "Ya, batalkan",
-                  action: () => transition(item, "Dibatalkan"),
+                    ". This will cancel the reservation.",
+                  label: "Yes, cancel",
+                  action: () => transition(item, "Cancelled"),
                 })
               }
             >
-              Batalkan reservasi
+              Cancel reservation
             </Button>
           )}
         </>
@@ -645,43 +647,43 @@ export default function ManagerApp() {
     case "manage":
       content = (
         <>
-          <h2>Tempat usaha</h2>
+          <h2>Business</h2>
           <Menu
             target="business"
-            title="Profil tempat usaha"
-            description="Nama, alamat, dan kontak"
+            title="Business profile"
+            description="Name, address, and contact details"
             icon={ShopIcon}
           />
           <Menu
             target="services"
-            title="Layanan"
-            description="Harga, durasi, dan staf layanan"
+            title="Services"
+            description="Prices, durations, and assigned staff"
             icon={CutIcon}
           />
           <Menu
             target="hours"
-            title="Jam operasional"
-            description="Jam buka dan hari libur"
+            title="Business hours"
+            description="Opening hours and days off"
             icon={ClockIcon}
           />
-          <h2>Tim</h2>
+          <h2>Team</h2>
           <Menu
             target="staff"
-            title="Staf"
-            description="Profil, akses, dan penugasan"
+            title="Staff"
+            description="Profiles, access, and assignments"
             icon={UserIcon}
           />
           <Menu
             target="schedule"
-            title="Jadwal staf"
-            description="Jam kerja dan istirahat"
+            title="Staff schedule"
+            description="Working hours and breaks"
             icon={CalendarIcon}
           />
-          <h2>Pemantauan</h2>
+          <h2>Monitoring</h2>
           <Menu
             target="activity"
-            title="Riwayat aktivitas"
-            description="Perubahan reservasi dan pelayanan"
+            title="Activity history"
+            description="Reservation and service changes"
             icon={ClockIcon}
           />
         </>
@@ -690,15 +692,15 @@ export default function ManagerApp() {
     case "business":
       content = (
         <div className="manager-form">
-          <p className="muted">Informasi yang dilihat pelanggan.</p>
+          <p className="muted">Information visible to customers.</p>
           <Field
-            label="Nama tempat usaha"
+            label="Business name"
             value={businessDraft.name}
             onChange={(name) => setBusinessDraft({ ...businessDraft, name })}
           />
           <Field
             area
-            label="Deskripsi"
+            label="Description"
             value={businessDraft.description}
             onChange={(description) =>
               setBusinessDraft({ ...businessDraft, description })
@@ -706,21 +708,21 @@ export default function ManagerApp() {
           />
           <Field
             area
-            label="Alamat"
+            label="Address"
             value={businessDraft.address}
             onChange={(address) =>
               setBusinessDraft({ ...businessDraft, address })
             }
           />
           <Field
-            label="Nomor kontak usaha"
+            label="Business phone number"
             type="tel"
-            placeholder="Masukkan nomor telepon"
+            placeholder="Enter a phone number"
             value={businessDraft.phone}
             onChange={(phone) => setBusinessDraft({ ...businessDraft, phone })}
           />
           <Select
-            label="Zona waktu"
+            label="Time zone"
             value={businessDraft.zone}
             onChange={(zone) => setBusinessDraft({ ...businessDraft, zone })}
             options={["Asia/Jakarta", "Asia/Makassar", "Asia/Jayapura"].map(
@@ -728,8 +730,8 @@ export default function ManagerApp() {
             )}
           />
           <p className="text-xs muted">
-            Zona waktu disimpan sebagai pengaturan demo; jadwal contoh tidak
-            dikonversi.
+            The time zone is saved as a setting; schedules are not
+            converted.
           </p>
           {error && <p role="alert">{error}</p>}
           <Button
@@ -739,23 +741,23 @@ export default function ManagerApp() {
                 !businessDraft.description.trim() ||
                 !businessDraft.address.trim()
               ) {
-                setError("Isi nama usaha, deskripsi, dan alamat.");
+                setError("Enter the business name, description, and address.");
                 return;
               }
               if (
                 businessDraft.phone &&
                 !/^\+?[0-9 ()-]{9,20}$/.test(businessDraft.phone)
               ) {
-                setError("Masukkan nomor kontak yang valid.");
+                setError("Enter a valid phone number.");
                 return;
               }
               setBusiness({ ...businessDraft });
-              log("Profil usaha diperbarui", businessDraft.name);
-              saveNotice("Profil usaha disimpan.");
+              log("Business profile updated", businessDraft.name);
+              saveNotice("Business profile saved.");
               go("manage");
             }}
           >
-            Simpan perubahan
+            Save changes
             <Icon as={TickIcon} />
           </Button>
         </div>
@@ -765,19 +767,19 @@ export default function ManagerApp() {
       content = (
         <>
           <p className="text-xs muted">
-            {services.length} layanan · Pilih untuk mengubah detail
+            {services.length} services · Select to edit details
           </p>
           {services.map((s) => (
             <Panel key={s.id}>
               <div className="between">
                 <Icon as={CutIcon} size={28} />
-                <span className="badge">{s.active ? "Aktif" : "Nonaktif"}</span>
+                <span className="badge">{s.active ? "Active" : "Inactive"}</span>
               </div>
               <h3>{s.name}</h3>
               <p>
-                {s.duration} menit · {money(s.price)}
+                {s.duration} min · {money(s.price)}
               </p>
-              <p className="text-xs muted">Staf: {s.staff.join(", ")}</p>
+              <p className="text-xs muted">Staff: {s.staff.join(", ")}</p>
               <Button
                 secondary
                 onClick={() => {
@@ -787,7 +789,7 @@ export default function ManagerApp() {
                   setError("");
                 }}
               >
-                Ubah layanan
+                Edit service
                 <Icon as={EditIcon} />
               </Button>
             </Panel>
@@ -799,13 +801,13 @@ export default function ManagerApp() {
       content = (
         <div className="manager-form">
           <Field
-            label="Nama layanan"
+            label="Service name"
             value={serviceDraft.name}
             onChange={(name) => setServiceDraft({ ...serviceDraft, name })}
           />
           <Field
             area
-            label="Deskripsi layanan"
+            label="Service description"
             value={serviceDraft.description}
             onChange={(description) =>
               setServiceDraft({ ...serviceDraft, description })
@@ -813,7 +815,7 @@ export default function ManagerApp() {
           />
           <div className="two-col">
             <Field
-              label="Durasi (menit)"
+              label="Duration (min)"
               type="number"
               min="1"
               value={serviceDraft.duration}
@@ -822,14 +824,14 @@ export default function ManagerApp() {
               }
             />
             <Field
-              label="Harga layanan (Rp)"
+              label="Service price (Rp)"
               type="number"
               min="0"
               value={serviceDraft.price}
               onChange={(price) => setServiceDraft({ ...serviceDraft, price })}
             />
           </div>
-          <h3>Staf yang dapat melayani</h3>
+          <h3>Assigned staff</h3>
           {staff.map((s) => (
             <wired-checkbox
               key={s.name}
@@ -847,18 +849,18 @@ export default function ManagerApp() {
             </wired-checkbox>
           ))}
           <p className="text-xs muted">
-            {serviceDraft.staff.length} staf dipilih
+            {serviceDraft.staff.length} staff selected
           </p>
           <Panel>
             <div className="between">
               <div>
-                <h3>Layanan aktif</h3>
+                <h3>Service active</h3>
                 <p className="text-xs muted">
-                  Ditawarkan untuk reservasi baru.
+                  Available for new reservations.
                 </p>
               </div>
               <wired-toggle
-                aria-label="Layanan aktif"
+                aria-label="Service active"
                 checked={serviceDraft.active}
                 onChange={(e) =>
                   setServiceDraft({ ...serviceDraft, active: e.target.checked })
@@ -869,8 +871,8 @@ export default function ManagerApp() {
           <div className="manager-notice">
             <Icon as={InfoIcon} />
             <p>
-              Perubahan layanan tidak mengubah detail reservasi yang sudah
-              dibuat.
+              Service changes do not affect existing
+              reservations.
             </p>
           </div>
           {error && <p role="alert">{error}</p>}
@@ -887,7 +889,7 @@ export default function ManagerApp() {
                 !serviceDraft.staff.length
               ) {
                 setError(
-                  "Isi nama, deskripsi, durasi positif, harga valid, dan pilih minimal satu staf.",
+                  "Enter a name, description, positive duration, valid price, and select at least one staff member.",
                 );
                 return;
               }
@@ -899,12 +901,12 @@ export default function ManagerApp() {
               setServices((all) =>
                 all.map((s) => (s.id === updated.id ? updated : s)),
               );
-              log("Layanan diperbarui", updated.name);
-              saveNotice("Perubahan layanan disimpan.");
+              log("Service updated", updated.name);
+              saveNotice("Service changes saved.");
               go("services");
             }}
           >
-            Simpan perubahan
+            Save changes
             <Icon as={TickIcon} />
           </Button>
         </div>
@@ -913,15 +915,15 @@ export default function ManagerApp() {
     case "hours":
       content = (
         <>
-          <p className="text-xs muted">Jadwal mingguan {business.zone}</p>
+          <p className="text-xs muted">Weekly schedule {business.zone}</p>
           {hoursDraft.map((h, i) => (
             <div className="manager-hours-row" key={h.day}>
               <div className="between">
                 <h3>{h.day}</h3>
                 <label className="inline">
-                  <span>{h.open ? "Buka" : "Tutup"}</span>
+                  <span>{h.open ? "Open" : "Closed"}</span>
                   <wired-toggle
-                    aria-label={"Buka " + h.day}
+                    aria-label={"Open: " + h.day}
                     checked={h.open}
                     onChange={(e) =>
                       setHoursDraft((all) =>
@@ -936,7 +938,7 @@ export default function ManagerApp() {
               {h.open && (
                 <div className="two-col">
                   <Field
-                    label={"Buka " + h.day}
+                    label={"Open: " + h.day}
                     type="time"
                     value={h.start}
                     onChange={(start) =>
@@ -946,7 +948,7 @@ export default function ManagerApp() {
                     }
                   />
                   <Field
-                    label={"Tutup " + h.day}
+                    label={"Close: " + h.day}
                     type="time"
                     value={h.end}
                     onChange={(end) =>
@@ -968,17 +970,17 @@ export default function ManagerApp() {
                 )
               ) {
                 setError(
-                  "Jam tutup harus setelah jam buka pada hari yang sama.",
+                  "Closing time must be after opening time on the same day.",
                 );
                 return;
               }
               setHours(hoursDraft.map((h) => ({ ...h })));
-              log("Jam operasional diperbarui", "Jadwal mingguan");
-              saveNotice("Jam operasional disimpan.");
+              log("Business hours updated", "Weekly schedule");
+              saveNotice("Business hours saved.");
               go("manage");
             }}
           >
-            Simpan jam operasional
+            Save business hours
             <Icon as={TickIcon} />
           </Button>
         </>
@@ -987,7 +989,7 @@ export default function ManagerApp() {
     case "staff":
       content = (
         <>
-          <p className="text-xs muted">Akses tidak terhubung ke akun nyata</p>
+          <p className="text-xs muted">Access settings are not linked to accounts</p>
           {staff.map((s) => (
             <Panel key={s.name}>
               <div className="manager-staff-row">
@@ -997,11 +999,11 @@ export default function ManagerApp() {
                 <div>
                   <h3>{s.name}</h3>
                   <p className="text-xs muted">
-                    Barber · {s.active ? "Akses aktif" : "Akses nonaktif"}
+                    Barber · {s.active ? "Access enabled" : "Access disabled"}
                   </p>
                 </div>
                 <wired-toggle
-                  aria-label={"Akses " + s.name}
+                  aria-label={"Access: " + s.name}
                   checked={s.active}
                   onChange={(e) => {
                     const active = e.target.checked;
@@ -1011,8 +1013,8 @@ export default function ManagerApp() {
                       ),
                     );
                     log(
-                      "Akses staf diperbarui",
-                      s.name + " · " + (active ? "aktif" : "nonaktif"),
+                      "Staff access updated",
+                      s.name + " · " + (active ? "active" : "inactive"),
                     );
                   }}
                 />
@@ -1021,7 +1023,7 @@ export default function ManagerApp() {
                 {services
                   .filter((service) => service.staff.includes(s.name))
                   .map((service) => service.name)
-                  .join(" · ") || "Belum ada penugasan layanan"}
+                  .join(" · ") || "No services assigned"}
               </p>
               <Button
                 secondary
@@ -1038,7 +1040,7 @@ export default function ManagerApp() {
                   go("schedule");
                 }}
               >
-                Lihat jadwal
+                View schedule
                 <Icon as={CalendarIcon} />
               </Button>
             </Panel>
@@ -1059,10 +1061,10 @@ export default function ManagerApp() {
       content = (
         <div className="manager-form">
           <p className="text-xs muted">
-            Tidak mengubah reservasi yang sudah ada
+            Existing reservations are not affected
           </p>
           <Select
-            label="Staf terpilih"
+            label="Selected staff"
             value={shiftStaff}
             onChange={(name) => {
               setShiftStaff(name);
@@ -1071,7 +1073,7 @@ export default function ManagerApp() {
             options={staff.map((s) => [s.name, s.name])}
           />
           <Select
-            label="Hari kerja"
+            label="Workday"
             value={shiftDay}
             onChange={(day) => {
               setShiftDay(day);
@@ -1079,31 +1081,31 @@ export default function ManagerApp() {
             }}
             options={initialHours.map((h) => [h.day, h.day])}
           />
-          <h2>Jam kerja</h2>
+          <h2>Working hours</h2>
           <div className="two-col">
             <Field
-              label="Mulai kerja"
+              label="Shift start"
               type="time"
               value={shift.start}
               onChange={(start) => setShift({ ...shift, start })}
             />
             <Field
-              label="Selesai kerja"
+              label="Shift end"
               type="time"
               value={shift.end}
               onChange={(end) => setShift({ ...shift, end })}
             />
           </div>
-          <h2>Istirahat</h2>
+          <h2>Break</h2>
           <div className="two-col">
             <Field
-              label="Mulai istirahat"
+              label="Break start"
               type="time"
               value={shift.breakStart}
               onChange={(breakStart) => setShift({ ...shift, breakStart })}
             />
             <Field
-              label="Selesai istirahat"
+              label="Break end"
               type="time"
               value={shift.breakEnd}
               onChange={(breakEnd) => setShift({ ...shift, breakEnd })}
@@ -1122,7 +1124,7 @@ export default function ManagerApp() {
                 )
               ) {
                 setError(
-                  "Pastikan jam kerja valid dan waktu istirahat berada di dalam jam kerja.",
+                  "Enter valid working hours and keep the break within the shift.",
                 );
                 return;
               }
@@ -1130,11 +1132,11 @@ export default function ManagerApp() {
                 ...all,
                 [shiftStaff + "|" + shiftDay]: { ...shift },
               }));
-              log("Jadwal staf diperbarui", shiftStaff + " · " + shiftDay);
-              saveNotice("Jadwal staf disimpan.");
+              log("Staff schedule updated", shiftStaff + " · " + shiftDay);
+              saveNotice("Staff schedule saved.");
             }}
           >
-            Simpan jadwal
+            Save schedule
             <Icon as={TickIcon} />
           </Button>
         </div>
@@ -1144,27 +1146,27 @@ export default function ManagerApp() {
     case "activity":
       content = (
         <>
-          <p className="text-xs muted">Perubahan pada sesi demo ini</p>
+          <p className="text-xs muted">Changes in this session</p>
           {audit.length ? (
             <ol className="manager-timeline">
               {audit.map((a) => (
                 <li key={a.id}>
                   <h3>{a.title}</h3>
                   <p>{a.detail}</p>
-                  <p>Maya (Manajer) · {a.time}</p>
+                  <p>Maya (Manager) · {a.time}</p>
                 </li>
               ))}
             </ol>
           ) : (
             <div className="manager-empty">
               <Icon as={ClockIcon} size={36} />
-              <h2>Belum ada perubahan</h2>
+              <h2>No changes yet</h2>
               <p>
-                Konfirmasi kedatangan atau simpan perubahan usaha untuk melihat
-                aktivitas di sini.
+                Confirm an arrival or save business changes to see
+                activity here.
               </p>
               <Button onClick={() => go("frontdesk")}>
-                Ke Front Desk
+                Go to Front Desk
                 <Icon />
               </Button>
             </div>
@@ -1176,77 +1178,27 @@ export default function ManagerApp() {
   const activePage = pages.find((p) => p[0] === screen);
   return (
     <div className="workspace manager-workspace">
-      <aside className="sidebar">
-        <div className="brand">
-          <span className="brand-mark">
-            <Icon as={ShopIcon} size={26} />
-          </span>
-          <div>
-            care space<span>manager experience</span>
-          </div>
-        </div>
-
-        <nav aria-label="Manager prototype screens">
-          {[
-            ["01", "Daily operations", pages.slice(0, 3)],
-            ["02", "Business & team", pages.slice(3)],
-          ].map(([num, title, list]) => (
-            <section className="nav-group" key={num}>
-              <h3>
-                <span>{num}</span>
-                {title}
-              </h3>
-              {list.map(([id, label]) => (
-                <button
-                  key={id}
-                  className={screen === id ? "active" : ""}
-                  onClick={() => go(id)}
-                >
-                  <span>{label}</span>
-                  {screen === id ? (
-                    <Icon size={16} />
-                  ) : (
-                    <span className="nav-dot" />
-                  )}
-                </button>
-              ))}
-            </section>
-          ))}
-        </nav>
-        <div className="sidebar-footer">
-          <Icon as={InfoIcon} />
-          <span>
-            Maya · Demo manager
-            <br />
-            No live business data.
-          </span>
-        </div>
-      </aside>
       <main className="canvas">
         <header className="canvas-header">
+          <a className="prototype-return" href="/">
+            All apps
+          </a>
           <div>
-            <h1>Manager prototype</h1>
+            <h1>Manager</h1>
           </div>
           <div className="manager-toolbar">
-            <a className="link" href="?app=staff">
-              Staff app
-            </a>
-            <a className="link" href="?app=customer">
-              Customer app
-              <Icon size={16} />
-            </a>
             <Button
               secondary
               onClick={() =>
                 setModal({
-                  title: "Reset manager demo?",
-                  body: "Semua perubahan sesi ini akan dihapus. Data contoh akan dikembalikan.",
-                  label: "Reset demo",
+                  title: "Reset manager?",
+                  body: "All changes in this session will be cleared. The original data will be restored.",
+                  label: "Reset",
                   action: () => window.location.reload(),
                 })
               }
             >
-              Reset demo
+              Reset
             </Button>
           </div>
         </header>
@@ -1255,16 +1207,16 @@ export default function ManagerApp() {
             <div className="status-bar">
               <span>9:41</span>
               <span className="notch" />
-              <span>Demo</span>
+              <PhoneFullscreen />
             </div>
             <header className="app-header">
               {!["frontdesk", "reservations", "manage"].includes(screen) && (
-                <button className="back" aria-label="Kembali" onClick={back}>
+                <button className="back" aria-label="Back" onClick={back}>
                   <Icon as={ArrowLeftIcon} />
                 </button>
               )}
               <h1 className="app-brand">Care Space</h1>
-              <span className="badge">Manajer</span>
+              <span className="badge">Manager</span>
             </header>
             <div
               className="screen"
@@ -1280,13 +1232,12 @@ export default function ManagerApp() {
                 <p>{business.name}</p>
               </section>
               {content}
-
             </div>
-            <nav className="bottom-nav" aria-label="Navigasi manajer">
+            <nav className="bottom-nav" aria-label="Manager navigation">
               {[
                 ["frontdesk", "Front Desk", UserIcon],
-                ["reservations", "Reservasi", CalendarIcon],
-                ["manage", "Kelola", SettingsIcon],
+                ["reservations", "Reservations", CalendarIcon],
+                ["manage", "Manage", SettingsIcon],
               ].map(([id, label, icon]) => (
                 <button
                   key={id}

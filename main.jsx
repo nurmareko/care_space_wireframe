@@ -22,6 +22,8 @@ import {
   HeadphoneIcon,
 } from "react-doodle-icons";
 import "./style.css";
+import "./prototype-shell.css";
+import PhoneFullscreen from "./phone-fullscreen.jsx";
 
 const money = (n) => "Rp" + n.toLocaleString("id-ID");
 const shops = [
@@ -39,7 +41,7 @@ const shops = [
     branch: "Mekarwangi",
     address: "Jl. Mekar Utama No. 111, Bandung",
     category: "Barber",
-    distance: "1,2 km",
+    distance: "1.2 km",
   },
   {
     id: "rekka",
@@ -47,7 +49,7 @@ const shops = [
     branch: "Palasari",
     address: "Palasari, Bandung",
     category: "Barber",
-    distance: "2,4 km",
+    distance: "2.4 km",
   },
   ...[
     "GS Aniva",
@@ -93,21 +95,21 @@ const services = [
     duration: 50,
     price: 230000,
     description:
-      "Konsultasi, potong rambut, dan styling oleh barber bersertifikat Korea.",
+      "Consultation, haircut, and styling by a Korean-certified barber.",
   },
   {
     name: "Haircut + Down Perm by Certified Barber",
     duration: 120,
     price: 420000,
     description:
-      "Potongan presisi dan down perm untuk rambut yang lebih mudah diatur.",
+      "A precision haircut and down perm for more manageable hair.",
   },
   {
     name: "Haircut + Wash",
     duration: 60,
     price: 200000,
     description:
-      "Potong rambut, keramas, dan styling untuk tampilan yang segar.",
+      "A haircut, wash, and styling for a fresh look.",
   },
 ];
 const beautyServices = [
@@ -116,66 +118,9 @@ const beautyServices = [
     duration: 60,
     price: 200000,
     description:
-      "Contoh layanan perawatan untuk mencoba alur pemesanan. Harga simulasi.",
+      "A personal care session.",
   },
 ];
-const screenGroups = [
-  [
-    "01",
-    "Start here",
-    [
-      ["welcome", "Welcome"],
-      ["phone", "Phone sign-in"],
-      ["otp", "Verification"],
-    ],
-  ],
-  [
-    "02",
-    "Discover & book",
-    [
-      ["home", "Home"],
-      ["search", "Search & outlets"],
-      ["outlet", "Services & deals"],
-      ["stylist", "Choose stylist"],
-      ["schedule", "Date & time"],
-      ["review", "Review booking"],
-      ["success", "Booking confirmed"],
-    ],
-  ],
-  [
-    "03",
-    "Your care space",
-    [
-      ["favorites", "Favorites"],
-      ["appointments", "Appointments"],
-      ["rewards", "Rewards"],
-      ["profile", "Profile"],
-      ["edit", "Edit profile"],
-      ["language", "Language"],
-      ["support", "Contact support"],
-    ],
-  ],
-];
-const en = {
-  Beranda: "Home",
-  Favorit: "Favorites",
-  "Janji Temu": "Appointments",
-  Profil: "Profile",
-  "Pilih layanan": "Choose a service",
-  "Di dekatmu": "Near you",
-  "Pilihan Care Space": "Care Space picks",
-  "Hasil pencarian": "Search results",
-  Bahasa: "Language",
-  "Kontak Kami": "Contact us",
-  "Ubah profil": "Edit profile",
-  Layanan: "Services",
-  Reward: "Rewards",
-  Promo: "Offers",
-  Info: "Info",
-  "Pilih stylist": "Choose a stylist",
-  "Pilih tanggal & waktu": "Choose date & time",
-  "Ringkasan pemesanan": "Booking summary",
-};
 function Icon({ as: Component = ArrowRightIcon, size = 20 }) {
   return <Component size={size} color="currentColor" />;
 }
@@ -234,22 +179,23 @@ function App() {
   const [history, setHistory] = useState([]);
   const scroll = useRef(null);
   const [signed, setSigned] = useState(false);
-  const [language, setLanguage] = useState("id");
-  const t = (text) => (language === "en" ? en[text] || text : text);
+  useEffect(() => {
+    document.documentElement.lang = "en";
+  }, []);
   const [shop, setShop] = useState(shops[0]);
-  const [tab, setTab] = useState("Layanan");
-  const [category, setCategory] = useState("Semua");
+  const [tab, setTab] = useState("Services");
+  const [category, setCategory] = useState("All");
   const [query, setQuery] = useState("");
   const [favorites, setFavorites] = useState(["kemang"]);
   const [service, setService] = useState(services[0]);
   const [stylist, setStylist] = useState("Esta");
-  const [full, setFull] = useState(false);
+
   const [day, setDay] = useState(0);
   const [time, setTime] = useState("20:00");
   const [note, setNote] = useState("");
   const [bookings, setBookings] = useState([]);
   const [current, setCurrent] = useState(null);
-  const [appointmentTab, setAppointmentTab] = useState("Berjalan");
+  const [appointmentTab, setAppointmentTab] = useState("Upcoming");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
@@ -271,7 +217,7 @@ function App() {
     return d;
   });
   const dateLabel = (i) =>
-    dates[i].toLocaleDateString("id-ID", {
+    dates[i].toLocaleDateString("en-GB", {
       weekday: "long",
       day: "numeric",
       month: "long",
@@ -305,7 +251,7 @@ function App() {
   }, []);
   function openShop(s) {
     setShop(s);
-    setTab("Layanan");
+    setTab("Services");
     go("outlet");
   }
   function toggleFavorite(id) {
@@ -335,7 +281,7 @@ function App() {
       date: dateLabel(day),
       time,
       note,
-      status: "Dikonfirmasi",
+      status: "Saved",
     };
     setBookings((bk) => [b, ...bk]);
     setCurrent(b);
@@ -344,26 +290,26 @@ function App() {
   const title = {
     home: "Care Space",
     welcome: "Care Space",
-    phone: "Masuk dengan nomor HP",
-    otp: "Verifikasi nomor HP",
-    search: category === "Beauty" ? "Beauty Bar" : "Hasil pencarian",
+    phone: "Sign in with your phone",
+    otp: "Verify your phone number",
+    search: category === "Beauty" ? "Beauty Bar" : "Search results",
     outlet: "Care Space",
-    stylist: "Pilih stylist",
-    schedule: "Pilih tanggal & waktu",
-    review: "Ringkasan pemesanan",
-    success: "Janji temu berhasil dibuat.",
-    favorites: "Favorit",
-    appointments: "Janji Temu",
-    detail: "Detail janji temu",
-    rewards: "Reward",
-    profile: "Profil",
-    edit: "Ubah profil",
-    language: "Bahasa",
-    support: "Kontak Kami",
+    stylist: "Choose a stylist",
+    schedule: "Choose date & time",
+    review: "Booking summary",
+    success: "Appointment saved",
+    favorites: "Favorites",
+    appointments: "Appointments",
+    detail: "Appointment details",
+    rewards: "Rewards",
+    profile: "Profile",
+    edit: "Edit profile",
+    language: "Language",
+    support: "Contact us",
   }[screen];
   const filtered = shops.filter(
     (s) =>
-      (category === "Semua" || s.category === category) &&
+      (category === "All" || s.category === category) &&
       `${s.name} ${s.branch} ${s.address}`
         .toLowerCase()
         .includes(query.toLowerCase()),
@@ -376,7 +322,7 @@ function App() {
         <div className="photo-wrap">
           <button
             className="photo-button"
-            aria-label={"Lihat " + item.name + " " + item.branch}
+            aria-label={"View " + item.name + " " + item.branch}
             onClick={() => openShop(item)}
           >
             <Placeholder
@@ -393,8 +339,8 @@ function App() {
             onClick={() => toggleFavorite(item.id)}
             aria-label={
               (favorites.includes(item.id)
-                ? "Hapus favorit "
-                : "Simpan favorit ") +
+                ? "Remove from favorites: "
+                : "Add to favorites: ") +
               item.name +
               " " +
               item.branch
@@ -425,7 +371,7 @@ function App() {
                 {item.distance}
               </span>
               <Button onClick={() => openShop(item)}>
-                Pesan <Icon />
+                Book <Icon />
               </Button>
             </div>
           )}
@@ -435,12 +381,12 @@ function App() {
   }
   function Nav() {
     return (
-      <nav className="bottom-nav" aria-label="Navigasi utama">
+      <nav className="bottom-nav" aria-label="Main navigation">
         {[
-          ["home", "Beranda", HomeIcon],
-          ["favorites", "Favorit", HeartIcon],
-          ["appointments", "Janji Temu", CalendarIcon],
-          ["profile", "Profil", UserIcon],
+          ["home", "Home", HomeIcon],
+          ["favorites", "Favorites", HeartIcon],
+          ["appointments", "Appointments", CalendarIcon],
+          ["profile", "Profile", UserIcon],
         ].map(([s, label, ic]) => (
           <button
             key={s}
@@ -449,7 +395,7 @@ function App() {
             onClick={() => go(s)}
           >
             <Icon as={ic} size={23} />
-            <span>{t(label)}</span>
+            <span>{label}</span>
           </button>
         ))}
       </nav>
@@ -468,15 +414,15 @@ function App() {
       </p>
       <p className="inline">
         <Icon as={ClockIcon} />
-        Mulai pukul {b.time}
+        Starts at {b.time}
       </p>
       <wired-divider />
       <h3>{b.service.name}</h3>
       <p className="muted">
-        {b.stylist} · {b.service.duration} menit
+        {b.stylist} · {b.service.duration} min
       </p>
       <strong>{money(b.service.price)}</strong>
-      {b.note && <p>Catatan: {b.note}</p>}
+      {b.note && <p>Note: {b.note}</p>}
     </Panel>
   );
   const draftBooking = {
@@ -492,15 +438,15 @@ function App() {
       <Panel>
         <div className="between">
           <Icon as={GiftIcon} size={32} />
-          <span className="badge">Kartu anggota</span>
+          <span className="badge">Membership card</span>
         </div>
         <h3>
           {signed
             ? profile.first + " " + profile.last
-            : "Masuk untuk lihat poin"}
+            : "Sign in to view points"}
         </h3>
         <div className="points">
-          {signed ? "300" : "—"} <span>Saldo poin</span>
+          {signed ? "300" : "—"} <span>Points balance</span>
         </div>
         {!signed && (
           <Button
@@ -509,7 +455,7 @@ function App() {
               go("phone");
             }}
           >
-            Masuk atau daftar <Icon />
+            Sign in or register <Icon />
           </Button>
         )}
       </Panel>
@@ -518,20 +464,20 @@ function App() {
           <Panel key={name}>
             <h3>{name}</h3>
             <p className="muted">
-              50 menit · Tukarkan poin untuk harga spesial.
+              50 min · Redeem points for a special price.
             </p>
             <div className="between">
-              <strong>1.000 poin</strong>
+              <strong>1,000 points</strong>
               <Button
                 secondary
                 onClick={() =>
                   setModal({
-                    title: "Poin belum cukup",
-                    body: "Saldo demo kamu 300 poin. Kumpulkan 700 poin lagi untuk menukarkan reward ini.",
+                    title: "Not enough points",
+                    body: "Your balance is 300 points. Earn 700 more to redeem this reward.",
                   })
                 }
               >
-                Tukarkan <Icon as={GiftIcon} />
+                Redeem <Icon as={GiftIcon} />
               </Button>
             </div>
           </Panel>
@@ -548,27 +494,13 @@ function App() {
           <div className="welcome-copy">
             <span className="eyebrow">A little time, just for you</span>
             <h1>
-              Ruang untuk
+              A space for
               <br />
-              merawat diri.
+              self-care.
             </h1>
-            <p>Temukan barber, salon, dan layanan perawatan favoritmu.</p>
+            <p>Find your favorite barbers, salons, and self-care services.</p>
           </div>
-          <Button
-            onClick={() =>
-              setModal({
-                title: "Google sign-in · Demo",
-                body: "Tidak ada akun Google yang dihubungkan. Lanjutkan sebagai Drestayumna untuk mencoba profil yang sudah masuk.",
-                action: () => {
-                  setSigned(true);
-                  go("home");
-                },
-                actionLabel: "Lanjutkan akun demo",
-              })
-            }
-          >
-            <Icon as={GlobeIcon} /> Lanjut dengan Google
-          </Button>
+
           <Button
             secondary
             onClick={() => {
@@ -576,7 +508,7 @@ function App() {
               go("phone");
             }}
           >
-            <Icon as={PhoneIcon} /> Lanjut dengan nomor HP
+            <Icon as={PhoneIcon} /> Continue with phone number
           </Button>
           <button
             className="link center"
@@ -585,22 +517,22 @@ function App() {
               go("home");
             }}
           >
-            Jelajahi sebagai tamu <Icon />
+            Browse as a guest <Icon />
           </button>
           <p className="text-xs center muted">
-            Dengan melanjutkan, kamu menyetujui{" "}
+            Before continuing, read our{" "}
             <button
               className="link"
               onClick={() =>
                 setModal({
-                  title: "Syarat & Ketentuan",
-                  body: "Ini prototipe interaktif. Tidak ada pembayaran, reservasi nyata, atau pengiriman data.",
+                  title: "Terms & Conditions",
+                  body: "Your entries stay in this session. No payments are collected or reservations sent to outlets.",
                 })
               }
             >
-              Syarat & Ketentuan
+              Terms & Conditions
             </button>{" "}
-            dan Kebijakan Privasi.
+            and Privacy Policy.
           </p>
         </>
       );
@@ -613,27 +545,27 @@ function App() {
               <Icon as={LocationIcon} size={16} /> Bandung, Indonesia
             </span>
             <span className="badge">
-              {signed ? "Halo, " + profile.first : "Guest mode"}
+              {signed ? "Hi, " + profile.first : "Guest mode"}
             </span>
           </div>
           <button
             className="search-trigger"
             onClick={() => {
               setQuery("");
-              setCategory("Semua");
+              setCategory("All");
               go("search");
             }}
           >
             <Icon as={SearchIcon} />
-            Cari barber, salon, layanan...
+            Search barbers, salons, services...
             <Icon />
           </button>
-          <h2>{t("Pilih layanan")}</h2>
+          <h2>{"Choose a service"}</h2>
           <div className="categories">
             {[
               ["Barber", ShopIcon],
               ["Beauty", StarIcon],
-              ["Refleksologi", HeartIcon],
+              ["Reflexology", HeartIcon],
               ["Salon", UserIcon],
             ].map(([c, ic], i) => (
               <button
@@ -652,16 +584,16 @@ function App() {
             ))}
           </div>
           <div className="section-heading">
-            <h2>{t("Di dekatmu")}</h2>
+            <h2>{"Near you"}</h2>
             <button
               className="link text-xs"
               onClick={() => {
                 setQuery("");
-                setCategory("Semua");
+                setCategory("All");
                 go("search");
               }}
             >
-              Lihat semua <Icon size={16} />
+              View all <Icon size={16} />
             </button>
           </div>
           <div className="two-col">
@@ -669,7 +601,7 @@ function App() {
               <ShopCard key={s.id} item={s} compact />
             ))}
           </div>
-          <h2>{t("Pilihan Care Space")}</h2>
+          <h2>{"Care Space picks"}</h2>
           <ShopCard item={shops[0]} />
         </>
       );
@@ -678,13 +610,13 @@ function App() {
       content = (
         <>
           <wired-search-input
-            aria-label="Cari outlet"
-            placeholder="Cari barber, salon, layanan..."
+            aria-label="Search outlets"
+            placeholder="Search barbers, salons, services..."
             value={query}
             onInput={(e) => setQuery(e.target.value)}
           />
           <div className="chips">
-            {["Semua", "Barber", "Beauty", "Refleksologi", "Salon"].map((c) => (
+            {["All", "Barber", "Beauty", "Reflexology", "Salon"].map((c) => (
               <button
                 key={c}
                 className={category === c ? "selected" : ""}
@@ -696,7 +628,7 @@ function App() {
             ))}
           </div>
           <p className="muted text-xs">
-            {filtered.length} outlet · Pilihan tempat untuk layanan ini
+            {filtered.length} outlets · Places offering this service
           </p>
           {filtered.length ? (
             filtered.map((s) => (
@@ -716,19 +648,18 @@ function App() {
           ) : (
             <div className="empty">
               <Icon as={SearchIcon} size={48} />
-              <h2>Belum ada outlet</h2>
+              <h2>No outlets found</h2>
               <p>
-                Coba kata kunci atau kategori lain. Data outlet pada prototype
-                ini terbatas.
+                Try another keyword or category.
               </p>
               <Button
                 secondary
                 onClick={() => {
                   setQuery("");
-                  setCategory("Semua");
+                  setCategory("All");
                 }}
               >
-                Lihat semua outlet
+                View all outlets
               </Button>
             </div>
           )}
@@ -744,7 +675,7 @@ function App() {
               className={
                 "favorite " + (favorites.includes(shop.id) ? "saved" : "")
               }
-              aria-label="Simpan outlet"
+              aria-label="Save outlet"
               aria-pressed={favorites.includes(shop.id)}
               onClick={() => toggleFavorite(shop.id)}
             >
@@ -753,10 +684,10 @@ function App() {
           </div>
           <h1 className="outlet-name">{fullShop}</h1>
           <p className="inline text-xs">
-            <span className="badge">Buka</span>13:00 – 21:00{" "}
+            <span className="badge">Open</span>13:00 – 21:00{" "}
             <span className="inline">
               <Icon as={StarIcon} size={16} />
-              4,9 (359)
+              4.9 (359)
             </span>
           </p>
           <p className="inline muted text-xs">
@@ -764,104 +695,100 @@ function App() {
             {shop.address}
           </p>
           <div className="tabs">
-            {["Layanan", "Reward", "Promo", "Info"].map((x) => (
+            {["Services", "Rewards", "Offers", "Info"].map((x) => (
               <button
                 key={x}
                 className={tab === x ? "active" : ""}
                 onClick={() => setTab(x)}
               >
-                {t(x)}
+                {x}
               </button>
             ))}
           </div>
-          {tab === "Layanan" && (
+          {tab === "Services" && (
             <>
-              <h2>Paket & penawaran</h2>
+              <h2>Packages & offers</h2>
               {shopServices.map((s) => (
                 <Panel key={s.name}>
                   <div className="inline">
                     <Icon as={TagIcon} />
                     <h3>{s.name}</h3>
                   </div>
-                  <p className="text-xs muted">{s.duration} menit</p>
+                  <p className="text-xs muted">{s.duration} min</p>
                   <p>{s.description}</p>
                   <div className="between">
                     <strong>{money(s.price)}</strong>
-                    <Button onClick={() => chooseService(s)}>Pesan +</Button>
+                    <Button onClick={() => chooseService(s)}>Book +</Button>
                   </div>
                 </Panel>
               ))}
             </>
           )}
-          {tab === "Reward" && rewards()}
-          {tab === "Promo" && (
+          {tab === "Rewards" && rewards()}
+          {tab === "Offers" && (
             <Panel>
               <Icon as={TagIcon} size={32} />
-              <h2>Paket lebih hemat</h2>
+              <h2>Care packages</h2>
               <p>
-                Haircut + Wash · 60 menit. Pilihan perawatan lengkap dalam satu
-                kunjungan.
+                Find a care package for your next visit.
               </p>
-              <p className="text-xs muted">
-                Contoh penawaran prototype, bukan promo aktif.
-              </p>
+
               <Button onClick={() => chooseService(shopServices.at(-1))}>
-                Lihat paket · {money(shopServices.at(-1).price)} <Icon />
+                View package · {money(shopServices.at(-1).price)} <Icon />
               </Button>
             </Panel>
           )}
           {tab === "Info" && (
             <>
-              <h2>Tentang outlet</h2>
+              <h2>About this outlet</h2>
               <p>
-                Ruang untuk merawat diri, dengan konsultasi personal sebelum
-                layanan dimulai.
+                A space for self-care, with a personal consultation before your service.
               </p>
               <div className="two-col">
                 <Button
                   secondary
                   onClick={() =>
                     setModal({
-                      title: "Hubungi outlet",
-                      body: "Kontak outlet disimulasikan. Tidak ada panggilan telepon yang dibuat.",
+                      title: "Contact outlet",
+                      body: "Phone contact is not available here.",
                     })
                   }
                 >
-                  <Icon as={PhoneIcon} /> Hubungi
+                  <Icon as={PhoneIcon} /> Contact
                 </Button>
                 <Button
                   secondary
                   onClick={() =>
                     setModal({
-                      title: "Lokasi outlet",
+                      title: "Outlet location",
                       body:
                         shop.address +
-                        ". Petunjuk arah disimulasikan pada prototype.",
+                        ". Use this address in your preferred maps app.",
                     })
                   }
                 >
-                  <Icon as={LocationIcon} /> Lihat arah
+                  <Icon as={LocationIcon} /> View address
                 </Button>
               </div>
-              <h2>Rating & ulasan</h2>
+              <h2>Ratings & reviews</h2>
               <Panel>
                 <div className="points">
-                  4,9 <Icon as={StarIcon} size={32} />
+                  4.9 <Icon as={StarIcon} size={32} />
                 </div>
-                <p>359 ulasan · Rata-rata penilaian</p>
+                <p>359 reviews · Average rating</p>
               </Panel>
               {[
                 [
                   "Nelsen",
                   "14 Jan 2026",
                   "5",
-                  "Kak Dee sangat membantu, skillful, dan memberi saran yang cocok.",
+                  "Dee was helpful and skilled, with great advice.",
                 ],
                 [
                   "Filal",
                   "10 Feb 2026",
                   "1",
-                  "Hasil berbeda dari referensi. Mohon konfirmasi sebelum mulai memotong.",
+                  "The result differed from the reference. Please confirm before cutting.",
                 ],
               ].map(([name, date, rating, body]) => (
                 <Panel key={name}>
@@ -886,26 +813,16 @@ function App() {
         <>
           <p className="eyebrow">Booking · 1 of 3</p>
           <Panel>
-            <span className="text-xs muted">Layanan terpilih</span>
+            <span className="text-xs muted">Selected service</span>
             <h3>{service.name}</h3>
             <p>{fullShop}</p>
           </Panel>
-          <label className="demo-toggle">
-            <wired-toggle
-              aria-label="Simulasikan jadwal penuh"
-              checked={full}
-              onChange={(e) => setFull(e.target.checked)}
-            />{" "}
-            Simulasikan jadwal penuh
-          </label>
-          <p className="text-xs muted">
-            Ketersediaan demo. Referensi asli menampilkan semua jadwal penuh.
-          </p>
+
           {["Esta", "Dee", "Adi", "Digul", "Arya"].map((name) => (
             <button
               className={"stylist-row " + (stylist === name ? "selected" : "")}
               key={name}
-              disabled={full}
+
               onClick={() => {
                 setStylist(name);
                 go("schedule");
@@ -924,7 +841,7 @@ function App() {
                 </span>
               </span>
               <span className="text-xs">
-                {full ? "Jadwal penuh" : "Pilih"} {!full && <Icon />}
+                Choose <Icon />
               </span>
             </button>
           ))}
@@ -943,7 +860,7 @@ function App() {
             </p>
           </Panel>
           <h2>
-            <Icon as={CalendarIcon} /> Pilih tanggal
+            <Icon as={CalendarIcon} /> Choose a date
           </h2>
           <div className="date-grid">
             {dates.map((d, i) => (
@@ -957,15 +874,15 @@ function App() {
                 }}
               >
                 <span>
-                  {d.toLocaleDateString("id-ID", { weekday: "short" })}
+                  {d.toLocaleDateString("en-GB", { weekday: "short" })}
                 </span>
                 <strong>{d.getDate()}</strong>
-                <span>{d.toLocaleDateString("id-ID", { month: "short" })}</span>
+                <span>{d.toLocaleDateString("en-GB", { month: "short" })}</span>
               </button>
             ))}
           </div>
           <h2>
-            <Icon as={ClockIcon} /> Waktu tersedia
+            <Icon as={ClockIcon} /> Available times
           </h2>
           <div className="time-grid">
             {[
@@ -992,16 +909,16 @@ function App() {
             ))}
           </div>
           <p className="text-xs muted">
-            Waktu lokal outlet · Durasi {service.duration} menit
+            Outlet local time · Duration: {service.duration} min
           </p>
           <div className="bottom-action">
             <div className="between">
               <span>
-                {dates[day].toLocaleDateString("id-ID", {
+                {dates[day].toLocaleDateString("en-GB", {
                   day: "numeric",
                   month: "short",
                 })}{" "}
-                · {time || "Pilih waktu"}
+                · {time || "Choose a time"}
               </span>
               <strong>{money(service.price)}</strong>
             </div>
@@ -1009,7 +926,7 @@ function App() {
               disabled={!time || (service.duration === 120 && time === "20:00")}
               onClick={() => go("review")}
             >
-              Tambahkan ke keranjang <Icon />
+              Add to booking <Icon />
             </Button>
           </div>
         </>
@@ -1022,49 +939,48 @@ function App() {
           {summary(draftBooking)}
           <div className="two-col">
             <Button secondary onClick={() => go("stylist")}>
-              Ubah layanan
+              Change service
             </Button>
             <Button
               secondary
               onClick={() =>
                 setModal({
-                  title: "Batalkan pilihan?",
-                  body: "Pilihan layanan belum dipesan. Kembali ke outlet untuk memilih ulang.",
+                  title: "Clear your selection?",
+                  body: "This service has not been booked. Return to the outlet to choose again.",
                   action: () => go("outlet"),
-                  actionLabel: "Batalkan pilihan",
+                  actionLabel: "Clear selection",
                 })
               }
             >
-              Batalkan
+              Cancel
             </Button>
           </div>
           <Field
             area
-            label="Catatan khusus (opsional)"
-            placeholder="Tulis catatan atau permintaan khusus"
+            label="Special requests (optional)"
+            placeholder="Add a note or special request"
             value={note}
             onChange={setNote}
           />
           <Panel>
             <h3 className="inline">
               <Icon as={InfoIcon} />
-              Kebijakan pembatalan
+              Cancellation policy
             </h3>
             <p className="text-xs muted">
-              Mohon tidak membatalkan janji temu dalam 1 jam sebelum jadwal.
-              Datang 5 menit lebih awal.
+              Please cancel at least 1 hour before your appointment. Arrive 5 minutes early.
             </p>
           </Panel>
           <div className="bottom-action">
             <div className="between">
-              <span>1 layanan · Bayar di outlet</span>
+              <span>1 service · Pay at the outlet</span>
               <strong>{money(service.price)}</strong>
             </div>
             <Button onClick={confirmBooking}>
-              {signed ? "Konfirmasi pemesanan" : "Masuk & konfirmasi"} <Icon />
+              {signed ? "Save appointment" : "Sign in & save"} <Icon />
             </Button>
             <span className="text-xs muted center">
-              Simulasi saja. Tidak ada tagihan atau reservasi nyata.
+              Saved in this session only. No reservation is sent or payment taken.
             </span>
           </div>
         </>
@@ -1076,34 +992,33 @@ function App() {
           <div className="success-mark">
             <Icon as={CalendarIcon} size={48} />
           </div>
-          <p className="center">Waktunya merawat diri. Sampai bertemu!</p>
+          <p className="center">Your appointment details are saved for this session.</p>
           {summary(current)}
           <Panel>
             <div className="between">
-              <span>Kode booking</span>
+              <span>Booking reference</span>
               <strong className="booking-code">{current.id}</strong>
             </div>
             <wired-divider />
-            <h3>Check-in sebelum {current.time}</h3>
+            <h3>Check in before {current.time}</h3>
             <p>
-              Datang setidaknya 5 menit lebih awal. Janji temu dapat dibatalkan
-              jika terlambat lebih dari 5 menit.
+              Arrive at least 5 minutes early. Appointments may be canceled if you are more than 5 minutes late.
             </p>
           </Panel>
           <Button onClick={() => go("detail")}>
-            Lihat detail janji temu <Icon />
+            View appointment details <Icon />
           </Button>
           <Button secondary onClick={() => go("home")}>
-            Kembali ke Beranda
+            Back to Home
           </Button>
         </>
       ) : (
         <div className="empty">
           <Icon as={CalendarIcon} size={48} />
-          <h2>Belum ada pemesanan</h2>
-          <p>Selesaikan alur booking untuk melihat konfirmasi.</p>
+          <h2>No bookings yet</h2>
+          <p>Choose a service and time to save an appointment.</p>
           <Button onClick={() => openShop(shops[0])}>
-            Mulai pemesanan <Icon />
+            Start booking <Icon />
           </Button>
         </div>
       );
@@ -1118,10 +1033,10 @@ function App() {
           ) : (
             <div className="empty">
               <Icon as={HeartIcon} size={48} />
-              <h2>Simpan tempat favoritmu</h2>
-              <p>Ketuk ikon hati pada outlet untuk menemukannya di sini.</p>
+              <h2>Save your favorite places</h2>
+              <p>Tap the heart on an outlet to find it here.</p>
               <Button onClick={() => go("home")}>
-                Jelajahi outlet <Icon />
+                Browse outlets <Icon />
               </Button>
             </div>
           )}
@@ -1132,7 +1047,7 @@ function App() {
       content = (
         <>
           <div className="tabs">
-            {["Berjalan", "Selesai"].map((v) => (
+            {["Upcoming", "Completed"].map((v) => (
               <button
                 key={v}
                 className={appointmentTab === v ? "active" : ""}
@@ -1142,7 +1057,7 @@ function App() {
               </button>
             ))}
           </div>
-          {appointmentTab === "Berjalan" ? (
+          {appointmentTab === "Upcoming" ? (
             bookings.length ? (
               bookings.map((b) => (
                 <Panel key={b.id}>
@@ -1165,41 +1080,28 @@ function App() {
                       go("detail");
                     }}
                   >
-                    Lihat detail <Icon />
+                    View details <Icon />
                   </Button>
                 </Panel>
               ))
             ) : (
               <div className="empty">
                 <Icon as={CalendarIcon} size={48} />
-                <h2>Waktu untuk dirimu</h2>
+                <h2>Time for yourself</h2>
                 <p>
-                  Belum ada janji temu. Temukan perawatan favoritmu dan pilih
-                  jadwal.
+                  No appointments yet. Find your favorite service and choose a time.
                 </p>
                 <Button onClick={() => go("home")}>
-                  Cari layanan <Icon />
+                  Find a service <Icon />
                 </Button>
               </div>
             )
           ) : (
-            [
-              "Minggu, 13 September 2026 · 16:00–16:50",
-              "Kamis, 19 Februari 2026 · 11:00–12:00",
-            ].map((date) => (
-              <Panel key={date}>
-                <span className="badge">Selesai · contoh riwayat</span>
-                <h3>Di Bawah Pohon Barber & Shop Kemang</h3>
-                <p>Standard Haircut</p>
-                <p className="text-xs inline">
-                  <Icon as={CalendarIcon} />
-                  {date}
-                </p>
-                <Button secondary onClick={() => openShop(shops[0])}>
-                  Pesan lagi <Icon />
-                </Button>
-              </Panel>
-            ))
+            <div className="empty">
+              <Icon as={CalendarIcon} size={48} />
+              <h2>No completed appointments</h2>
+              <p>Your completed appointments will appear here.</p>
+            </div>
           )}
         </>
       );
@@ -1215,33 +1117,33 @@ function App() {
             <Icon as={LocationIcon} />
             {current.shop.address}
           </p>
-          {current.status !== "Dibatalkan" && (
+          {current.status !== "Canceled" && (
             <Button
               secondary
               onClick={() =>
                 setModal({
-                  title: "Batalkan janji temu?",
-                  body: "Janji temu demo ini akan ditandai dibatalkan. Tidak ada biaya pembatalan pada prototype.",
+                  title: "Cancel this appointment?",
+                  body: "This appointment will be marked as canceled in this session.",
                   action: () => {
-                    const next = { ...current, status: "Dibatalkan" };
+                    const next = { ...current, status: "Canceled" };
                     setCurrent(next);
                     setBookings((bs) =>
                       bs.map((b) => (b.id === next.id ? next : b)),
                     );
                   },
-                  actionLabel: "Ya, batalkan",
+                  actionLabel: "Yes, cancel",
                 })
               }
             >
-              Batalkan janji temu
+              Cancel appointment
             </Button>
           )}
           <Button onClick={() => go("appointments")}>
-            Semua janji temu <Icon />
+            All appointments <Icon />
           </Button>
         </>
       ) : (
-        <p>Pilih janji temu dari daftar.</p>
+        <p>Choose an appointment from the list.</p>
       );
       break;
     case "rewards":
@@ -1261,7 +1163,7 @@ function App() {
             <h2>
               {signed
                 ? profile.first + " " + profile.last
-                : "Kamu masuk sebagai tamu"}
+                : "You are browsing as a guest"}
             </h2>
             {signed ? (
               <>
@@ -1274,13 +1176,13 @@ function App() {
                     go("edit");
                   }}
                 >
-                  {t("Ubah profil")} <Icon />
+                  {"Edit profile"} <Icon />
                 </Button>
               </>
             ) : (
               <>
                 <p className="muted">
-                  Masuk untuk mengelola profil, janji temu, dan favoritmu.
+                  Sign in to manage your profile, appointments, and favorites.
                 </p>
                 <Button
                   onClick={() => {
@@ -1288,32 +1190,32 @@ function App() {
                     go("phone");
                   }}
                 >
-                  Masuk atau daftar <Icon />
+                  Sign in or register <Icon />
                 </Button>
               </>
             )}
           </div>
-          <h3 className="section-label">Preferensi</h3>
+          <h3 className="section-label">Preferences</h3>
           <button className="menu-row" onClick={() => go("language")}>
             <Icon as={GlobeIcon} />
-            {t("Bahasa")}
-            <span>{language === "id" ? "Bahasa Indonesia" : "English"}</span>
+            {"Language"}
+            <span>English</span>
             <Icon />
           </button>
           <button className="menu-row" onClick={() => go("rewards")}>
             <Icon as={GiftIcon} />
-            Reward<span>{signed ? "300 poin" : "Masuk"}</span>
+            Rewards<span>{signed ? "300 points" : "Sign in"}</span>
             <Icon />
           </button>
-          <h3 className="section-label">Informasi & bantuan</h3>
-          {["Syarat dan Ketentuan", "Kebijakan Privasi"].map((x) => (
+          <h3 className="section-label">Information & help</h3>
+          {["Terms & Conditions", "Privacy Policy"].map((x) => (
             <button
               className="menu-row"
               key={x}
               onClick={() =>
                 setModal({
                   title: x,
-                  body: "Care Space interactive wireframe. Semua data adalah contoh dan hanya disimpan selama halaman terbuka. Tidak ada layanan backend atau transaksi nyata.",
+                  body: "Your entries are kept only while this page is open. No data is sent to outlets, and no payments are processed.",
                 })
               }
             >
@@ -1330,18 +1232,18 @@ function App() {
             }}
           >
             <Icon as={HeadphoneIcon} />
-            {t("Kontak Kami")}
+            {"Contact us"}
             <Icon />
           </button>
           {signed && (
             <>
-              <h3 className="section-label">Akun</h3>
+              <h3 className="section-label">Account</h3>
               <button
                 className="menu-row"
                 onClick={() =>
                   setModal({
-                    title: "Hapus data demo?",
-                    body: "Profil, favorit, dan janji temu sesi ini akan direset.",
+                    title: "Reset your data?",
+                    body: "Your profile, favorites, and appointments in this session will be reset.",
                     action: () => {
                       setSigned(false);
                       setBookings([]);
@@ -1359,12 +1261,12 @@ function App() {
                       setOtp("");
                       go("profile");
                     },
-                    actionLabel: "Hapus data demo",
+                    actionLabel: "Reset",
                   })
                 }
               >
                 <Icon as={UserIcon} />
-                Hapus Data Saya
+                Reset my data
                 <Icon />
               </button>
               <button
@@ -1375,7 +1277,7 @@ function App() {
                 }}
               >
                 <Icon as={ArrowLeftIcon} />
-                Keluar
+                Sign out
                 <Icon />
               </button>
             </>
@@ -1393,7 +1295,7 @@ function App() {
           <div className="phone-field">
             <span>+62</span>
             <Field
-              label="Nomor HP"
+              label="Phone number"
               placeholder="821 1077 8883"
               type="tel"
               value={phone}
@@ -1404,7 +1306,7 @@ function App() {
             />
           </div>
           <p className="text-xs muted">
-            Demo: masukkan 9–13 digit setelah +62. Tidak ada SMS yang dikirim.
+            Enter 9–13 digits after +62. No SMS will be sent.
           </p>
           {error && (
             <p className="error" role="alert">
@@ -1416,7 +1318,7 @@ function App() {
             onClick={() => {
               if (!/^[1-9][0-9]{8,12}$/.test(phone.replace(/\s/g, ""))) {
                 setError(
-                  "Masukkan nomor HP yang valid tanpa awalan 0 atau +62.",
+                  "Enter a valid phone number without a leading 0 or +62.",
                 );
                 return;
               }
@@ -1424,7 +1326,7 @@ function App() {
               go("otp");
             }}
           >
-            Lanjutkan <Icon />
+            Continue <Icon />
           </Button>
           <div className="step-lines">
             <b />
@@ -1440,17 +1342,16 @@ function App() {
           <div className="intro-icon">
             <Icon as={MailIcon} size={40} />
           </div>
-          <p>Masukkan kode untuk +62 {phone || "821 1077 8883"}.</p>
+          <p>Enter the code for +62 {phone || "821 1077 8883"}.</p>
           <Panel>
-            <h3>Verifikasi simulasi</h3>
+            <h3>Verification code</h3>
             <p>
-              Gunakan kode <strong>123456</strong>. Tidak ada pesan yang
-              dikirim.
+              Use code <strong>123456</strong> to continue. No SMS is sent.
             </p>
           </Panel>
           <Field
-            label="Kode verifikasi"
-            placeholder="6 digit"
+            label="Verification code"
+            placeholder="6 digits"
             value={otp}
             onChange={(v) => setOtp(v.replace(/\D/g, "").slice(0, 6))}
           />
@@ -1459,24 +1360,24 @@ function App() {
             disabled={otp.length !== 6}
             onClick={() => {
               if (otp !== "123456") {
-                setError("Kode tidak cocok. Gunakan kode demo 123456.");
+                setError("Incorrect code. Use 123456.");
                 return;
               }
               setSigned(true);
               go(afterLogin);
-              notify("Berhasil masuk ke akun demo.");
+              notify("Signed in.");
             }}
           >
-            Verifikasi & lanjutkan <Icon />
+            Verify & continue <Icon />
           </Button>
           <button
             className="link"
-            onClick={() => notify("Kode demo dikirim ulang: 123456")}
+            onClick={() => notify("Use verification code 123456. No SMS is sent.")}
           >
-            Kirim ulang kode
+            Show code
           </button>
           <button className="link" onClick={() => go("phone")}>
-            Ubah nomor HP
+            Change phone number
           </button>
         </>
       );
@@ -1489,12 +1390,12 @@ function App() {
           </span>
 
           <Field
-            label="Nama depan"
+            label="First name"
             value={draft.first}
             onChange={(v) => setDraft({ ...draft, first: v })}
           />
           <Field
-            label="Nama belakang"
+            label="Last name"
             value={draft.last}
             onChange={(v) => setDraft({ ...draft, last: v })}
           />
@@ -1513,7 +1414,7 @@ function App() {
                 go("phone");
               }}
             >
-              Ubah nomor HP
+              Change phone number
             </button>
           </div>
           {error && <p role="alert">{error}</p>}
@@ -1524,15 +1425,15 @@ function App() {
                 !draft.last.trim() ||
                 !/^\S+@\S+\.\S+$/.test(draft.email)
               ) {
-                setError("Isi nama lengkap dan email yang valid.");
+                setError("Enter your full name and a valid email address.");
                 return;
               }
               setProfile(draft);
               go("profile");
-              notify("Perubahan profil disimpan.");
+              notify("Profile changes saved.");
             }}
           >
-            Simpan perubahan <Icon />
+            Save changes <Icon />
           </Button>
         </>
       );
@@ -1540,27 +1441,12 @@ function App() {
     case "language":
       content = (
         <>
-          <p>Pilih bahasa yang ingin kamu gunakan.</p>
-          {[
-            ["id", "ID", "Bahasa Indonesia"],
-            ["en", "EN", "English"],
-          ].map(([code, short, name]) => (
-            <button
-              className={
-                "language-row " + (language === code ? "selected" : "")
-              }
-              aria-pressed={language === code}
-              key={code}
-              onClick={() => setLanguage(code)}
-            >
-              <span className="avatar">{short}</span>
-              <h3>{name}</h3>
-              <span>{language === code ? "✓" : ""}</span>
-            </button>
-          ))}
-          <p className="text-xs muted">
-            Bahasa berlaku untuk navigasi dan judul.
-          </p>
+          <p>The app is currently available in English.</p>
+          <div className="language-row selected">
+            <span className="avatar">EN</span>
+            <h3>English</h3>
+            <span aria-label="Current language">✓</span>
+          </div>
         </>
       );
       break;
@@ -1568,31 +1454,30 @@ function App() {
       content = sent ? (
         <div className="empty">
           <Icon as={MailIcon} size={48} />
-          <h2>Pesan diterima</h2>
+          <h2>Request saved</h2>
           <p>
-            Permintaan demo CS-SUPPORT-001 telah dicatat di sesi ini. Tidak ada
-            pesan yang dikirim ke tim support.
+            Request CS-SUPPORT-001 is saved in this session only. It has not been sent to support.
           </p>
           <Button onClick={() => go("profile")}>
-            Kembali ke Profil <Icon />
+            Back to Profile <Icon />
           </Button>
         </div>
       ) : (
         <>
-          <p>Pilih alasan kamu menghubungi kami.</p>
+          <p>What do you need help with?</p>
           <wired-radio-group
-            aria-label="Alasan menghubungi"
+            aria-label="Reason for contacting us"
             selected={reason}
             onselected={(e) => setReason(e.detail.selected)}
           >
             {[
-              "Masalah OTP",
-              "Aplikasi tidak dapat dibuka",
-              "Saldo poin pada aplikasi dan dashboard tidak terlihat",
-              "Reservasi hilang",
-              "Terjebak saat memilih layanan dengan pesan ‘Mohon Tunggu’",
-              "Tampilan kosong saat memilih jadwal",
-              "Lainnya",
+              "Verification code issue",
+              "App will not open",
+              "Points balance is missing",
+              "Missing reservation",
+              "Stuck on “Please wait” when choosing a service",
+              "Blank screen when choosing a time",
+              "Other",
             ].map((r) => (
               <wired-radio key={r} name={r}>
                 {r}
@@ -1601,13 +1486,13 @@ function App() {
           </wired-radio-group>
           <Field
             area
-            label="Detail tambahan (opsional)"
-            placeholder="Ceritakan kendala yang kamu alami"
+            label="Additional details (optional)"
+            placeholder="Describe the issue"
             value={message}
             onChange={setMessage}
           />
           <Button disabled={!reason} onClick={() => setSent(true)}>
-            Kirim <Icon />
+            Save request <Icon />
           </Button>
         </>
       );
@@ -1627,76 +1512,24 @@ function App() {
 
   return (
     <div className="workspace">
-      <aside className="sidebar">
-        <div className="brand">
-          <span className="brand-mark">
-            <Icon as={ShopIcon} size={26} />
-          </span>
-          <div>
-            care space<span>customer experience</span>
-          </div>
-        </div>
-
-        <nav aria-label="Prototype screens">
-          {screenGroups.map(([num, label, items]) => (
-            <section className="nav-group" key={num}>
-              <h3>
-                <span>{num}</span>
-                {label}
-              </h3>
-              {items.map(([s, label]) => (
-                <button
-                  key={s}
-                  className={screen === s ? "active" : ""}
-                  onClick={() => {
-                    if (s === "edit") setDraft({ ...profile });
-                    go(s);
-                  }}
-                >
-                  <span>{label}</span>
-                  {screen === s ? (
-                    <Icon size={16} />
-                  ) : (
-                    <span className="nav-dot" />
-                  )}
-                </button>
-              ))}
-            </section>
-          ))}
-        </nav>
-        <div className="sidebar-footer">
-          <Icon as={InfoIcon} />
-          <span>
-            Demo data only.
-            <br />
-            Resets on reload.
-          </span>
-        </div>
-      </aside>
       <main className="canvas">
         <header className="canvas-header">
+          <a className="prototype-return" href="/">All apps</a>
           <div>
-            <h1>Customer prototype</h1>
-            <a className="link text-xs" href="?app=manager">
-              Manager
-            </a>
-            {" · "}
-            <a className="link text-xs" href="?app=staff">
-              Staff
-            </a>
+            <h1>Care Space</h1>
           </div>
           <button
             className="btn-secondary restart"
             onClick={() =>
               setModal({
-                title: "Reset prototype?",
+                title: "Reset?",
                 body: "Clear the current session and return to the initial home screen?",
                 action: () => window.location.reload(),
-                actionLabel: "Reset prototype",
+                actionLabel: "Reset",
               })
             }
           >
-            Reset demo <Icon as={ArrowLeftIcon} />
+            Reset <Icon as={ArrowLeftIcon} />
           </button>
         </header>
         <div className="stage">
@@ -1704,11 +1537,11 @@ function App() {
             <div className="status-bar">
               <span>9:41</span>
               <span className="notch" />
-              <span>Demo</span>
+              <PhoneFullscreen />
             </div>
             <header className="app-header">
               {screen !== "home" && (
-                <button className="back" aria-label="Kembali" onClick={back}>
+                <button className="back" aria-label="Back" onClick={back}>
                   <Icon as={ArrowLeftIcon} size={25} />
                 </button>
               )}
@@ -1719,12 +1552,12 @@ function App() {
                     : ""
                 }
               >
-                {t(title)}
+                {title}
               </h1>
               {screen === "home" && (
                 <button
                   className="header-profile"
-                  aria-label="Buka profil"
+                  aria-label="Open profile"
                   onClick={() => go("profile")}
                 >
                   <Icon as={UserIcon} />
@@ -1789,7 +1622,7 @@ function Modal({ modal, close }) {
         </Button>
       )}
       <Button secondary onClick={close}>
-        {modal.action ? "Kembali" : "Mengerti"}
+        {modal.action ? "Back" : "Got it"}
       </Button>
     </dialog>
   );
@@ -1806,7 +1639,7 @@ function renderPrototype(Component) {
           document.querySelector(".screen")?.focus();
         }}
       >
-        Skip to prototype
+        Skip to app
       </a>
       <Component />
     </>,
@@ -1820,6 +1653,12 @@ if (new URLSearchParams(window.location.search).get("app") === "manager") {
   import("./staff.jsx").then(({ default: StaffApp }) =>
     renderPrototype(StaffApp),
   );
-} else {
+} else if (
+  new URLSearchParams(window.location.search).get("app") === "customer"
+) {
   renderPrototype(App);
+} else {
+  import("./chooser.jsx").then(({ default: AppChooser }) =>
+    root.render(<AppChooser />),
+  );
 }

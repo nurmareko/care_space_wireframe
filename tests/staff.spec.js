@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 const screen = (page) => page.locator(".screen");
 const nav = (page, name) =>
   page
-    .getByRole("navigation", { name: "Navigasi staf" })
+    .getByRole("navigation", { name: "Staff navigation" })
     .getByRole("button", { name, exact: true })
     .click();
 const confirm = (page, name) =>
@@ -20,29 +20,29 @@ test("staff starts and completes checked-in service and agenda reflects status",
   await expect(screen(page)).toContainText("CS-1042");
   await expect(screen(page)).toContainText("09:28");
   await screen(page)
-    .getByRole("button", { name: "Mulai layanan", exact: true })
+    .getByRole("button", { name: "Start service", exact: true })
     .click();
-  await confirm(page, "Kembali");
+  await confirm(page, "Back");
   await expect(
-    screen(page).getByRole("button", { name: "Mulai layanan", exact: true }),
+    screen(page).getByRole("button", { name: "Start service", exact: true }),
   ).toBeEnabled();
   await screen(page)
-    .getByRole("button", { name: "Mulai layanan", exact: true })
+    .getByRole("button", { name: "Start service", exact: true })
     .click();
-  await confirm(page, "Ya, mulai layanan");
-  await expect(screen(page)).toContainText("Sedang dilayani");
+  await confirm(page, "Yes, start service");
+  await expect(screen(page)).toContainText("In progress");
   await screen(page)
-    .getByRole("button", { name: "Selesaikan layanan", exact: true })
+    .getByRole("button", { name: "Complete service", exact: true })
     .click();
-  await confirm(page, "Ya, selesaikan layanan");
-  await screen(page).getByRole("button", { name: "Kembali ke agenda" }).click();
+  await confirm(page, "Yes, complete service");
+  await screen(page).getByRole("button", { name: "Back to agenda" }).click();
   await expect(
     screen(page).getByRole("button", { name: /Drestayumna Nurmareko/ }),
-  ).toContainText("Selesai");
+  ).toContainText("Completed");
   expect(errors).toEqual([]);
 });
 
-test("scheduled appointment cannot start until demo Front Desk check-in", async ({
+test("scheduled appointment waits for Front Desk while checked-in appointments can start", async ({
   page,
 }) => {
   await page.goto("/?app=staff");
@@ -50,40 +50,39 @@ test("scheduled appointment cannot start until demo Front Desk check-in", async 
     .getByRole("button", { name: /Bima Pratama/ })
     .click();
   await expect(
-    screen(page).getByRole("button", { name: "Mulai layanan", exact: true }),
+    screen(page).getByRole("button", { name: "Start service", exact: true }),
   ).toBeDisabled();
-  await page.getByText("Kontrol skenario prototype", { exact: true }).click();
-  await screen(page)
-    .getByRole("button", { name: "Simulasikan kedatangan" })
-    .click();
-  await expect(
-    screen(page).getByRole("button", { name: "Mulai layanan", exact: true }),
-  ).toBeEnabled();
+  await expect(screen(page)).toContainText("Waiting for Front Desk to confirm arrival.");
+  await screen(page).getByRole("button", { name: "Back to agenda" }).click();
+  await expect(screen(page).getByRole("button", { name: /Bima Pratama/ })).toContainText("Scheduled");
+  await screen(page).getByRole("button", { name: /Drestayumna Nurmareko/ }).click();
+  await expect(screen(page).getByRole("button", { name: "Start service", exact: true })).toBeEnabled();
+
 });
 
 test("availability save persists without canceling existing appointments", async ({
   page,
 }) => {
   await page.goto("/?app=staff");
-  await nav(page, "Ketersediaan");
-  const save = screen(page).getByRole("button", { name: "Simpan perubahan" });
+  await nav(page, "Availability");
+  const save = screen(page).getByRole("button", { name: "Save changes" });
   await expect(save).toBeDisabled();
   await page.locator("wired-toggle").click();
   await save.click();
-  await expect(page.getByRole("status")).toContainText("berhasil disimpan");
+  await expect(page.getByRole("status")).toContainText("Availability saved.");
   await expect(save).toBeDisabled();
   await nav(page, "Agenda");
   await expect(page.locator(".staff-appointment")).toHaveCount(3);
-  await nav(page, "Ketersediaan");
+  await nav(page, "Availability");
   await expect(page.locator("wired-toggle input")).not.toBeChecked();
   await page.locator("wired-toggle").click();
-  await nav(page, "Profil");
-  await expect(page.getByRole("dialog")).toContainText("Abaikan perubahan");
-  await confirm(page, "Kembali");
+  await nav(page, "Profile");
+  await expect(page.getByRole("dialog")).toContainText("Discard changes");
+  await confirm(page, "Back");
   await expect(page.locator("#staff-availability")).toBeVisible();
   await nav(page, "Agenda");
-  await confirm(page, "Abaikan & lanjutkan");
-  await nav(page, "Ketersediaan");
+  await confirm(page, "Discard & continue");
+  await nav(page, "Availability");
   await expect(page.locator("wired-toggle input")).not.toBeChecked();
 });
 
@@ -92,45 +91,46 @@ test("date selection gives empty state and read-only schedule", async ({
 }) => {
   await page.goto("/?app=staff");
   await page
-    .getByRole("button", { name: "Sab, 10 Oktober", exact: true })
+    .getByRole("button", { name: "Sat, 10 October", exact: true })
     .click();
-  await expect(screen(page)).toContainText("Agenda masih kosong");
-  await nav(page, "Ketersediaan");
+  await expect(screen(page)).toContainText("No appointments");
+  await nav(page, "Availability");
   await expect(page.locator("wired-toggle")).toHaveJSProperty("disabled", true);
   await expect(
-    screen(page).getByRole("button", { name: "Simpan perubahan" }),
+    screen(page).getByRole("button", { name: "Save changes" }),
   ).toBeDisabled();
   await nav(page, "Agenda");
   await screen(page)
-    .getByRole("button", { name: "Hari ini", exact: true })
+    .getByRole("button", { name: "Today", exact: true })
     .click();
   await expect(page.locator(".staff-appointment")).toHaveCount(3);
 });
 
-test("profile is read-only and sign-out blocks navigation until demo sign-in", async ({
+test("profile is read-only and sign-out blocks navigation until sign-in", async ({
   page,
 }) => {
   await page.goto("/?app=staff");
-  await nav(page, "Profil");
+  await nav(page, "Profile");
   await expect(screen(page)).toContainText("STF-004");
   await expect(screen(page).locator("wired-input")).toHaveCount(0);
   await screen(page)
-    .getByRole("button", { name: "Keluar", exact: true })
+    .getByRole("button", { name: "Sign out", exact: true })
     .click();
-  await confirm(page, "Ya, keluar");
+  await confirm(page, "Yes, sign out");
   await expect(page.locator("#staff-signedout")).toBeVisible();
   await expect(
-    page.getByRole("navigation", { name: "Navigasi staf" }),
+    page.getByRole("navigation", { name: "Staff navigation" }),
   ).toHaveCount(0);
   await expect(
-    page
-      .getByRole("navigation", { name: "Staff prototype screens" })
-      .getByRole("button", { name: "Agenda", exact: true }),
-  ).toBeDisabled();
+    page.getByRole("link", { name: "All apps", exact: true }),
+  ).toBeVisible();
   await screen(page)
-    .getByRole("button", { name: "Masuk sebagai Esta" })
+    .getByRole("button", { name: "Sign in as Esta" })
     .click();
   await expect(page.locator("#staff-agenda")).toBeVisible();
+  await expect(
+    page.getByRole("navigation", { name: "Staff navigation" }),
+  ).toBeVisible();
 });
 
 test("staff mobile screens fit, navigation works, and desktop screenshot renders", async ({
@@ -143,8 +143,11 @@ test("staff mobile screens fit, navigation works, and desktop screenshot renders
     fullPage: true,
   });
   await page.setViewportSize({ width: 375, height: 812 });
-  await expect(page.locator(".sidebar")).toBeHidden();
-  for (const label of ["Agenda", "Ketersediaan", "Profil"]) {
+  await expect(page.locator(".sidebar")).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "All apps", exact: true }),
+  ).toBeVisible();
+  for (const label of ["Agenda", "Availability", "Profile"]) {
     await nav(page, label);
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth),

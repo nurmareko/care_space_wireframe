@@ -2,7 +2,7 @@
 
 Three grayscale React prototypes based on the customer, manager, and staff references in `design/`. Built with Vite, wired-elements, and react-doodle-icons. App screens use Patrick Hand; the review controls use IBM Plex Sans.
 
-The presentation shell contains screen navigation, app switching, reset controls, and one demo notice. Screen-note panels, reference footers, and repeated prototype explanations are omitted. Keyboard users can use **Skip to prototype** to reach the active screen. On the staff agenda, **Pilih tanggal lain** expands the date input; the week strip remains directly available.
+The main page is an app chooser with previews of the actual wireframes. Each app has one **All apps** link back to the chooser and a reset control. Screen directories, cross-app links, and screen-note panels are removed; use each app's own tabs, menus, and back buttons. Keyboard users can use **Skip to prototype** to reach the active screen. On the staff agenda, **Pilih tanggal lain** expands the date input; the week strip remains directly available.
 
 ## Run
 
@@ -11,7 +11,9 @@ npm install
 npm run dev
 ```
 
-Open the local URL printed by Vite (normally `http://localhost:5173`). On desktop, use the left-side screen navigator to explore individual states. On mobile, navigate within the app. The initial screen is Home; Welcome is accessible from the desktop navigator, or by signing out of the demo account.
+Open the local URL printed by Vite (normally `http://localhost:5173`) and choose **Customer**, **Manager**, or **Staff**. Hovering or focusing a choice changes its preview; selecting it opens the app. All three links work on mobile. Direct links remain available at `/?app=customer`, `/?app=manager`, and `/?app=staff`. Missing or unknown app parameters show the chooser.
+
+The customer app starts at Home. Welcome is accessible by signing out of the demo account. Returning to the chooser or switching apps resets the current in-memory session.
 
 ```sh
 npm run build
@@ -20,7 +22,7 @@ npm run preview
 
 ## Staff prototype
 
-Open `http://localhost:5173/?app=staff` (use the port printed by Vite), or follow the staff link in either desktop prototype header.
+Choose **Staff** on the main page, or open `http://localhost:5173/?app=staff` (use the port printed by Vite).
 
 Based on the four images in `design/staff_app/`:
 
@@ -33,7 +35,7 @@ Based on the four images in `design/staff_app/`:
 
 ## Manager prototype
 
-Open `http://localhost:5173/?app=manager` (adjust the port if Vite prints a different one), or use **Open manager prototype** in the customer desktop header. The original customer app remains at `/` or `?app=customer`.
+Choose **Manager** on the main page, or open `http://localhost:5173/?app=manager` (use the port printed by Vite).
 
 The manager prototype follows the six images in `design/manager_app/`:
 
@@ -44,7 +46,7 @@ The manager prototype follows the six images in `design/manager_app/`:
 - **Business editor:** save name, description, address, optional phone, and timezone.
 - **Service editor:** edit name, description, duration, price, assigned staff, and active status. Existing reservations retain their original service snapshots.
 
-Weekly hours, staff access toggles, shift editing, and session activity are inferred supplementary screens for the hub links; the supplied references do not show their detailed layouts. They are explicitly labeled as demo content. The additional reservation lifecycle controls are also prototype extensions.
+Weekly hours, staff access toggles, shift editing, and session activity are inferred supplementary screens for the hub links; the supplied references do not show their detailed layouts. The additional reservation lifecycle controls are also prototype extensions.
 
 **Manager boundaries:** the scenario date is fixed to **9 October 2026**, matching the references. State resets on reload and is not shared with the customer app. No real accounts, check-ins, permissions, or business settings are changed. Timezone is saved as a demo setting, without converting the example appointment times. Hours, staff access, and shifts are editable examples, not a booking-availability engine. The Beard Trim price is illustrative.
 
@@ -66,7 +68,7 @@ Weekly hours, staff access toggles, shift editing, and session activity are infe
 - Guest and signed-in profiles, profile editing, account reset, and sign-out.
 - Indonesian/English primary navigation and heading selection.
 - Support reason selection and simulated submission.
-- Responsive mobile layout and desktop presentation shell with screen notes.
+- Responsive app chooser, keyboard-accessible previews, and app-native navigation at all widths.
 
 ## Prototype boundaries
 
@@ -86,11 +88,15 @@ npx playwright install chromium
 npm test
 ```
 
-The 21 Playwright tests cover keyboard skip navigation, the expandable staff date picker, staff service progression, check-in gating, availability persistence and unsaved edits, empty dates, read-only profile and sign-out, plus customer booking/sign-in/cancellation, search and favorites, support, profile edits, language navigation, manager check-in and service completion, reservation filters, editor validation, service snapshot preservation, shift persistence, screen rendering, and mobile navigation. Tests start and stop their own Vite server on port 4173. Desktop and mobile screenshots for all three apps are written to ignored `test-results/`.
+The 28 Playwright tests cover app selection and return navigation, chooser layouts at 1440/768/390px, reduced motion, unknown app fallback, keyboard skip navigation, the expandable staff date picker, staff service progression, check-in gating, availability persistence and unsaved edits, empty dates, read-only profile and sign-out, plus customer booking/sign-in/cancellation, search and favorites, support, profile edits, language navigation, manager check-in and service completion, reservation filters, editor validation, service snapshot preservation, shift persistence, screen rendering, and mobile navigation. Tests start and stop their own Vite server on port 4173. Desktop and mobile screenshots for all three apps are written to ignored `test-results/`.
 
 ## Files
 
-- `main.jsx` — customer screens and query-parameter entry selection; lazy-loads the manager and staff apps.
+- `main.jsx` — customer screens and query-parameter entry selection; lazy-loads the chooser, manager, and staff apps.
+- `chooser.jsx` and `chooser.css` — app selection page and live screenshot preview.
+- `prototype-shell.css` — minimal outer controls shared by all apps.
+- `public/previews/` — screenshots captured from this project's apps; no stock imagery.
+- `tests/chooser.spec.js` — chooser navigation and responsive tests.
 - `staff.jsx` and `staff.css` — staff prototype and scoped styling.
 - `tests/staff.spec.js` — staff browser regression tests.
 - `manager.jsx` — manager screens, reference scenario, and session interactions.

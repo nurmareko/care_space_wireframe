@@ -6,10 +6,12 @@ for (const app of ["customer", "manager", "staff"]) {
   }) => {
     await page.goto(`/?app=${app}`);
     await expect(page.locator(".screen")).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute("lang", "en");
+    await expect(page.locator("body")).not.toContainText(/\bdemo\b/i);
     await expect(page.locator('.screen a[href^="?app="]')).toHaveCount(0);
     await page.keyboard.press("Tab");
     await expect(
-      page.getByRole("link", { name: "Skip to prototype" }),
+      page.getByRole("link", { name: "Skip to app" }),
     ).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(page.locator(".screen")).toBeFocused();
@@ -29,5 +31,5 @@ test("staff secondary date picker remains operable after collapsing it", async (
   await expect(picker.locator("wired-input")).toBeHidden();
   await picker.locator("summary").click();
   await picker.locator("input").fill("2026-10-10");
-  await expect(page.locator(".screen")).toContainText("Agenda masih kosong");
+  await expect(page.locator(".screen")).toContainText("No appointments");
 });

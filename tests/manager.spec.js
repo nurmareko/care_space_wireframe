@@ -1,10 +1,21 @@
 import { test, expect } from "@playwright/test";
 const body = (p) => p.locator(".screen");
-const jump = (p, name) =>
+const nav = (p, name) =>
   p
-    .getByRole("navigation", { name: "Manager prototype screens" })
+    .getByRole("navigation", { name: "Manager navigation" })
     .getByRole("button", { name, exact: true })
     .click();
+async function manage(p, name) {
+  await nav(p, "Manage");
+  await body(p).getByRole("button", { name }).click();
+}
+async function editService(p) {
+  await manage(p, /^Services/);
+  await body(p)
+    .getByRole("button", { name: "Edit service", exact: true })
+    .first()
+    .click();
+}
 const field = (p, label) =>
   p.locator(`wired-input[aria-label="${label}"] input`);
 async function select(p, label, text) {
@@ -22,35 +33,35 @@ test("manager check-in updates reservation and timeline through completion", asy
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/?app=manager");
   await body(page)
-    .getByRole("button", { name: "Konfirmasi kedatangan", exact: true })
+    .getByRole("button", { name: "Confirm arrival", exact: true })
     .click();
   await page
     .getByRole("dialog")
-    .getByRole("button", { name: "Ya, sudah datang" })
+    .getByRole("button", { name: "Yes, confirm arrival" })
     .click();
   await expect(body(page).locator("wired-card").first()).toContainText(
-    "Sudah datang",
+    "Arrived",
   );
   await body(page)
-    .getByRole("button", { name: "Lihat detail reservasi" })
+    .getByRole("button", { name: "View reservation details" })
     .click();
-  await expect(body(page)).toContainText("Kedatangan dikonfirmasi");
+  await expect(body(page)).toContainText("Arrival confirmed");
   await body(page)
-    .getByRole("button", { name: "Mulai pelayanan", exact: true })
+    .getByRole("button", { name: "Start service", exact: true })
     .click();
   await page
     .getByRole("dialog")
-    .getByRole("button", { name: "Konfirmasi", exact: true })
+    .getByRole("button", { name: "Confirm", exact: true })
     .click();
   await body(page)
-    .getByRole("button", { name: "Selesaikan pelayanan", exact: true })
+    .getByRole("button", { name: "Complete service", exact: true })
     .click();
   await page
     .getByRole("dialog")
-    .getByRole("button", { name: "Konfirmasi", exact: true })
+    .getByRole("button", { name: "Confirm", exact: true })
     .click();
-  await expect(body(page)).toContainText("Pelayanan diselesaikan");
-  await jump(page, "Riwayat aktivitas");
+  await expect(body(page)).toContainText("Service completed");
+  await manage(page, /^Activity history/);
   await expect(body(page)).toContainText("CS-1045");
   expect(errors).toEqual([]);
 });
@@ -59,49 +70,50 @@ test("search and reservation filters handle results and empty states", async ({
   page,
 }) => {
   await page.goto("/?app=manager");
-  await field(page, "Kode pemesanan").fill("missing");
-  await body(page).getByRole("button", { name: "Cari", exact: true }).click();
-  await expect(body(page)).toContainText("Reservasi tidak ditemukan");
-  await jump(page, "Reservasi");
-  await select(page, "Staf", "Adi");
+  await field(page, "Booking code").fill("missing");
+  await body(page).getByRole("button", { name: "Search", exact: true }).click();
+  await expect(body(page)).toContainText("Reservation not found");
+  await nav(page, "Reservations");
+  await select(page, "Staff", "Adi");
   await expect(body(page).locator(".manager-reservation")).toHaveCount(1);
   await expect(body(page)).toContainText("Raka Pradana");
-  await select(page, "Status", "Selesai");
-  await expect(body(page)).toContainText("Tidak ada reservasi");
-  await body(page).getByRole("button", { name: "Reset filter" }).click();
+  await select(page, "Status", "Completed");
+  await expect(body(page)).toContainText("No reservations");
+  await body(page).getByRole("button", { name: "Reset filters" }).click();
   await expect(body(page).locator(".manager-reservation")).toHaveCount(5);
-  await field(page, "Tanggal reservasi").fill("2026-10-10");
-  await expect(body(page)).toContainText("Tidak ada reservasi");
+  await field(page, "Reservation date").fill("2026-10-10");
+  await expect(body(page)).toContainText("No reservations");
 });
 
 test("business and service editors save without mutating reservation snapshots", async ({
   page,
 }) => {
   await page.goto("/?app=manager");
-  await jump(page, "Profil usaha");
-  await field(page, "Nama tempat usaha").fill("Care Space Kemang Demo");
-  await body(page).getByRole("button", { name: "Simpan perubahan" }).click();
+  await manage(page, /^Business profile/);
+  await field(page, "Business name").fill("Care Space Kemang Demo");
+  await body(page).getByRole("button", { name: "Save changes" }).click();
   await expect(body(page)).toContainText("Care Space Kemang Demo");
-  await jump(page, "Ubah layanan");
-  await field(page, "Durasi (menit)").fill("0");
-  await body(page).getByRole("button", { name: "Simpan perubahan" }).click();
+  await editService(page);
+  await field(page, "Duration (min)").fill("0");
+  await body(page).getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByRole("alert")).toBeVisible();
-  await field(page, "Durasi (menit)").fill("60");
-  await field(page, "Harga layanan (Rp)").fill("250000");
+  await field(page, "Duration (min)").fill("60");
+  await field(page, "Service price (Rp)").fill("250000");
   await page.locator("wired-checkbox").filter({ hasText: "Adi" }).click();
-  await page.locator('wired-toggle[aria-label="Layanan aktif"]').click();
-  await body(page).getByRole("button", { name: "Simpan perubahan" }).click();
+  await page.locator('wired-toggle[aria-label="Service active"]').click();
+  await body(page).getByRole("button", { name: "Save changes" }).click();
   await expect(body(page).locator("wired-card").first()).toContainText(
-    "Rp250.000",
+    "Rp250,000",
   );
   await expect(body(page).locator("wired-card").first()).toContainText(
-    "Nonaktif",
+    "Inactive",
   );
-  await jump(page, "Detail reservasi");
-  await expect(body(page)).toContainText("Rp230.000");
-  await expect(body(page)).toContainText("45 menit");
-  await jump(page, "Ubah layanan");
-  await expect(field(page, "Durasi (menit)")).toHaveValue("60");
+  await nav(page, "Reservations");
+  await body(page).getByRole("button", { name: /Nadia/ }).click();
+  await expect(body(page)).toContainText("Rp230,000");
+  await expect(body(page)).toContainText("45 min");
+  await editService(page);
+  await expect(field(page, "Duration (min)")).toHaveValue("60");
   await expect(
     page.locator("wired-checkbox").filter({ hasText: "Adi" }).locator("input"),
   ).not.toBeChecked();
@@ -113,23 +125,35 @@ test("all manager screens render and shift validation persists saved data", asyn
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/?app=manager");
-  const labels = await page
-    .getByRole("navigation", { name: "Manager prototype screens" })
-    .getByRole("button")
-    .allTextContents();
-  for (const label of labels) {
-    await jump(page, label.trim());
+  for (const label of ["Front Desk", "Reservations", "Manage"]) {
+    await nav(page, label);
     await expect(body(page).locator("h1")).not.toBeEmpty();
   }
-  await jump(page, "Jadwal staf");
-  await field(page, "Selesai kerja").fill("08:00");
-  await body(page).getByRole("button", { name: "Simpan jadwal" }).click();
+  await nav(page, "Reservations");
+  await body(page).getByRole("button", { name: /Nadia/ }).click();
+  await expect(body(page)).toContainText("Rp230,000");
+  for (const label of [
+    /^Business profile/,
+    /^Services/,
+    /^Business hours/,
+    /^Staff Profiles/,
+    /^Staff schedule/,
+    /^Activity history/,
+  ]) {
+    await manage(page, label);
+    await expect(body(page).locator("h1")).not.toBeEmpty();
+  }
+  await editService(page);
+  await expect(field(page, "Duration (min)")).toBeVisible();
+  await manage(page, /^Staff schedule/);
+  await field(page, "Shift end").fill("08:00");
+  await body(page).getByRole("button", { name: "Save schedule" }).click();
   await expect(page.getByRole("alert")).toBeVisible();
-  await field(page, "Selesai kerja").fill("19:00");
-  await body(page).getByRole("button", { name: "Simpan jadwal" }).click();
-  await select(page, "Staf terpilih", "Dee");
-  await select(page, "Staf terpilih", "Esta");
-  await expect(field(page, "Selesai kerja")).toHaveValue("19:00");
+  await field(page, "Shift end").fill("19:00");
+  await body(page).getByRole("button", { name: "Save schedule" }).click();
+  await select(page, "Selected staff", "Dee");
+  await select(page, "Selected staff", "Esta");
+  await expect(field(page, "Shift end")).toHaveValue("19:00");
   expect(errors).toEqual([]);
 });
 
@@ -139,17 +163,21 @@ test("manager mobile fits and bottom navigation is usable", async ({
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/?app=manager");
   await expect(page.locator(".manager-hero h1")).toHaveText("Front Desk");
+  await expect(
+    page.getByRole("link", { name: "All apps", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".sidebar")).toHaveCount(0);
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(375);
   await page
-    .getByRole("navigation", { name: "Navigasi manajer" })
-    .getByRole("button", { name: "Kelola", exact: true })
+    .getByRole("navigation", { name: "Manager navigation" })
+    .getByRole("button", { name: "Manage", exact: true })
     .click();
   await body(page)
-    .getByRole("button", { name: /Profil tempat usaha/ })
+    .getByRole("button", { name: /Business profile/ })
     .click();
-  await expect(field(page, "Nama tempat usaha")).toBeVisible();
+  await expect(field(page, "Business name")).toBeVisible();
   await page.screenshot({
     path: "test-results/manager-mobile.png",
     fullPage: true,
@@ -163,6 +191,9 @@ test("manager desktop visual capture and customer switch", async ({ page }) => {
     path: "test-results/manager-desktop.png",
     fullPage: true,
   });
-  await page.getByRole("link", { name: "Customer app", exact: true }).click();
+  await page.getByRole("link", { name: "All apps", exact: true }).click();
+  await expect(page).toHaveURL("/");
+  await page.getByRole("link", { name: "Customer", exact: true }).click();
+  await expect(page).toHaveURL("/?app=customer");
   await expect(page.locator("#screen-home")).toBeVisible();
 });

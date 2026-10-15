@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import PhoneFullscreen from "./phone-fullscreen.jsx";
 import {
   CalendarIcon,
   ClockIcon,
@@ -24,8 +25,8 @@ const initialAppointments = [
     end: "10:15",
     duration: 45,
     service: "Haircut by Certified Barber",
-    status: "Sudah datang",
-    events: ["Kedatangan dikonfirmasi Front Desk pukul 09:28."],
+    status: "Arrived",
+    events: ["Arrival confirmed by Front Desk at 09:28."],
   },
   {
     id: "CS-1047",
@@ -34,7 +35,7 @@ const initialAppointments = [
     end: "11:30",
     duration: 30,
     service: "Beard Trim",
-    status: "Terjadwal",
+    status: "Scheduled",
     events: [],
   },
   {
@@ -44,26 +45,26 @@ const initialAppointments = [
     end: "14:45",
     duration: 45,
     service: "Haircut by Certified Barber",
-    status: "Terjadwal",
+    status: "Scheduled",
     events: [],
   },
 ];
 const pages = [
   ["agenda", "Agenda", CalendarIcon],
-  ["detail", "Detail layanan", CutIcon],
-  ["availability", "Ketersediaan", ClockIcon],
-  ["profile", "Profil staf", UserIcon],
+  ["detail", "Service details", CutIcon],
+  ["availability", "Availability", ClockIcon],
+  ["profile", "Staff profile", UserIcon],
 ];
 
 const dateLabel = (value) =>
   value
-    ? new Date(value + "T12:00:00").toLocaleDateString("id-ID", {
+    ? new Date(value + "T12:00:00").toLocaleDateString("en-US", {
         weekday: "long",
         day: "numeric",
         month: "long",
         year: "numeric",
       })
-    : "Pilih tanggal";
+    : "Choose a date";
 function Icon({ as: Component = ArrowRightIcon, size = 20 }) {
   return (
     <span className="staff-icon" aria-hidden="true">
@@ -111,7 +112,7 @@ function Modal({ value, close }) {
         <Icon as={TickIcon} />
       </Button>
       <Button secondary onClick={close}>
-        Kembali
+        Back
       </Button>
     </dialog>
   );
@@ -132,7 +133,8 @@ export default function StaffApp() {
   const hasSchedule = date === TODAY;
   const dayAppointments = hasSchedule ? appointments : [];
   useEffect(() => {
-    document.title = "Care Space — Staff Wireframe";
+    document.title = "Care Space — Staff";
+    document.documentElement.lang = "en";
   }, []);
   useEffect(() => {
     scroll.current?.scrollTo(0, 0);
@@ -150,9 +152,9 @@ export default function StaffApp() {
     };
     if (screen === "availability" && dirty) {
       setModal({
-        title: "Abaikan perubahan?",
-        body: "Perubahan ketersediaan belum disimpan. Ketersediaan yang tersimpan tidak akan berubah.",
-        label: "Abaikan & lanjutkan",
+        title: "Discard changes?",
+        body: "Your availability changes have not been saved. Saved availability will stay unchanged.",
+        label: "Discard & continue",
         action: move,
       });
     } else move();
@@ -164,9 +166,9 @@ export default function StaffApp() {
     };
     if (dirty) {
       setModal({
-        title: "Abaikan perubahan?",
-        body: "Simpan perubahan terlebih dahulu atau abaikan sebelum memilih tanggal lain.",
-        label: "Abaikan & ganti tanggal",
+        title: "Discard changes?",
+        body: "Save or discard your changes before choosing another date.",
+        label: "Discard & change date",
         action: move,
       });
     } else move();
@@ -177,16 +179,16 @@ export default function StaffApp() {
   }
   function updateStatus(next) {
     const event =
-      next === "Sedang dilayani"
-        ? "Pelayanan dimulai oleh Esta."
-        : "Pelayanan diselesaikan oleh Esta.";
+      next === "In progress"
+        ? "Service started by Esta."
+        : "Service completed by Esta.";
     setAppointments((all) =>
       all.map((a) =>
         a.id === selected
           ? {
               ...a,
               status: next,
-              events: [...a.events, event + " (Sesi demo)"],
+              events: [...a.events, event],
             }
           : a,
       ),
@@ -194,18 +196,18 @@ export default function StaffApp() {
     setToast(event);
   }
   const canStart =
-    active.status === "Sudah datang" &&
-    !appointments.some((a) => a.status === "Sedang dilayani");
+    active.status === "Arrived" &&
+    !appointments.some((a) => a.status === "In progress");
   function DateField() {
     return (
       <label className="staff-date">
         <span className="inline">
           <Icon as={CalendarIcon} />
-          Tanggal
+          Date
         </span>
         <wired-input
           type="date"
-          aria-label="Tanggal"
+          aria-label="Date"
           value={date}
           onInput={(e) => changeDate(e.target.value)}
         />
@@ -218,8 +220,8 @@ export default function StaffApp() {
         {hasSchedule ? (
           <div className={locked ? "staff-shift locked" : "staff-shift"}>
             {[
-              ["Jam kerja", "09:00–17:00"],
-              ["Istirahat", "12:00–13:00"],
+              ["Working hours", "09:00–17:00"],
+              ["Break", "12:00–13:00"],
             ].map(([label, time]) => (
               <div key={label}>
                 <Icon as={ClockIcon} size={24} />
@@ -234,7 +236,7 @@ export default function StaffApp() {
         ) : (
           <div className="inline">
             <Icon as={InfoIcon} />
-            <p>Belum ada jadwal demo untuk tanggal ini.</p>
+            <p>No schedule for this date.</p>
           </div>
         )}
       </Panel>
@@ -245,20 +247,17 @@ export default function StaffApp() {
     content = (
       <div className="staff-empty" id="staff-signedout">
         <span className="avatar large">E</span>
-        <h1>Sampai jumpa, Esta.</h1>
-        <p>Kamu sudah keluar dari sesi staf.</p>
+        <h1>See you, Esta.</h1>
+        <p>You have signed out.</p>
         <Button
           onClick={() => {
             setSigned(true);
             setScreen("agenda");
           }}
         >
-          Masuk sebagai Esta
+          Sign in as Esta
           <Icon />
         </Button>
-        <p className="text-xs muted">
-          Masuk untuk melanjutkan sesi. Reset demo mengembalikan data awal.
-        </p>
       </div>
     );
   } else
@@ -269,27 +268,27 @@ export default function StaffApp() {
             <div className="between">
               <h2>
                 {date
-                  ? new Date(date + "T12:00:00").toLocaleDateString("id-ID", {
+                  ? new Date(date + "T12:00:00").toLocaleDateString("en-US", {
                       month: "long",
                       year: "numeric",
                     })
-                  : "Pilih tanggal"}
+                  : "Choose a date"}
               </h2>
               <button
                 className="btn-secondary staff-today"
                 onClick={() => changeDate(TODAY)}
               >
-                Hari ini
+                Today
               </button>
             </div>
-            <div className="staff-week" aria-label="Minggu referensi">
-              {["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"].map(
+            <div className="staff-week" aria-label="Week view">
+              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
                 (label, i) => {
                   const value = "2026-10-" + String(i + 5).padStart(2, "0");
                   return (
                     <button
                       key={value}
-                      aria-label={`${label}, ${i + 5} Oktober`}
+                      aria-label={`${label}, ${i + 5} October`}
                       aria-pressed={date === value}
                       className={date === value ? "selected" : ""}
                       onClick={() => changeDate(value)}
@@ -302,12 +301,12 @@ export default function StaffApp() {
               )}
             </div>
             <details className="staff-date-picker">
-              <summary>Pilih tanggal lain</summary>
+              <summary>Choose another date</summary>
               <DateField />
             </details>
             <Shift />
             <div className="between">
-              <h2>{hasSchedule ? "Reservasi hari ini" : "Reservasi"}</h2>
+              <h2>{hasSchedule ? "Today’s appointments" : "Appointments"}</h2>
               <span className="badge">{dayAppointments.length}</span>
             </div>
             <div className="staff-agenda">
@@ -315,7 +314,7 @@ export default function StaffApp() {
                 <button
                   className={
                     "staff-appointment " +
-                    (a.status === "Sudah datang" ? "highlighted" : "")
+                    (a.status === "Arrived" ? "highlighted" : "")
                   }
                   key={a.id}
                   onClick={() => openAppointment(a)}
@@ -329,13 +328,13 @@ export default function StaffApp() {
                     <h3>{a.name}</h3>
                     <span className="staff-status">
                       <Icon
-                        as={a.status === "Terjadwal" ? ClockIcon : TickIcon}
+                        as={a.status === "Scheduled" ? ClockIcon : TickIcon}
                         size={15}
                       />
                       {a.status}
                     </span>
                     <p>{a.service}</p>
-                    <span className="text-xs muted">{a.duration} menit</span>
+                    <span className="text-xs muted">{a.duration} min</span>
                   </span>
                   <Icon />
                 </button>
@@ -344,18 +343,14 @@ export default function StaffApp() {
             {!dayAppointments.length && (
               <div className="staff-empty">
                 <Icon as={CalendarIcon} size={40} />
-                <h2>Agenda masih kosong</h2>
+                <h2>No appointments</h2>
 
                 <Button secondary onClick={() => changeDate(TODAY)}>
-                  Kembali ke hari demo
+                  Back to today
                   <Icon />
                 </Button>
               </div>
             )}
-            <p className="text-xs muted">
-              Tanggal skenario: 9 Oktober 2026 · “Hari ini” kembali ke tanggal
-              referensi.
-            </p>
           </>
         );
         break;
@@ -363,10 +358,10 @@ export default function StaffApp() {
         content = (
           <>
             <div className="between">
-              <span>Reservasi {active.id}</span>
+              <span>Appointment {active.id}</span>
               <span className="staff-status">
                 <Icon
-                  as={active.status === "Terjadwal" ? ClockIcon : TickIcon}
+                  as={active.status === "Scheduled" ? ClockIcon : TickIcon}
                   size={16}
                 />
                 {active.status}
@@ -376,7 +371,7 @@ export default function StaffApp() {
               <p className="text-xs muted">{active.events[0]}</p>
             )}
             <div className="staff-section">
-              <p className="text-xs muted">Pelanggan</p>
+              <p className="text-xs muted">Customer</p>
               <div className="inline">
                 <span className="avatar">
                   {active.name
@@ -389,7 +384,7 @@ export default function StaffApp() {
               </div>
             </div>
             <wired-divider />
-            <h2>Jadwal layanan</h2>
+            <h2>Service schedule</h2>
             <p className="inline">
               <Icon as={CalendarIcon} />
               {dateLabel(TODAY)}
@@ -398,15 +393,15 @@ export default function StaffApp() {
               <Icon as={ClockIcon} size={27} />
               {active.start}–{active.end}
             </p>
-            <span className="text-xs muted">{active.duration} menit</span>
+            <span className="text-xs muted">{active.duration} min</span>
             <wired-divider />
-            <h2>Layanan</h2>
+            <h2>Services</h2>
             <h3 className="inline">
               <Icon as={CutIcon} size={28} />
               {active.service}
             </h3>
             <wired-divider />
-            <h2>Penugasan</h2>
+            <h2>Assignment</h2>
             <div className="staff-assignment">
               <Icon as={UserIcon} />
               <span className="muted">Barber</span>
@@ -420,61 +415,61 @@ export default function StaffApp() {
               <p>
                 {
                   {
-                    Terjadwal:
-                      "Menunggu konfirmasi kedatangan dari Front Desk.",
-                    "Sudah datang": "Pelayanan belum dimulai.",
-                    "Sedang dilayani": "Pelayanan sedang berlangsung.",
-                    Selesai: "Pelayanan telah selesai. Terima kasih, Esta.",
+                    Scheduled:
+                      "Waiting for Front Desk to confirm arrival.",
+                    "Arrived": "Service has not started.",
+                    "In progress": "Service is in progress.",
+                    Completed: "Service is complete. Thank you, Esta.",
                   }[active.status]
                 }
               </p>
             </div>
-            {["Terjadwal", "Sudah datang"].includes(active.status) && (
+            {["Scheduled", "Arrived"].includes(active.status) && (
               <Button
                 disabled={!canStart}
                 onClick={() =>
                   setModal({
-                    title: "Mulai layanan?",
+                    title: "Start service?",
                     body:
                       active.name +
                       " · " +
                       active.service +
-                      ". Status pada agenda akan diperbarui.",
-                    label: "Ya, mulai layanan",
-                    action: () => updateStatus("Sedang dilayani"),
+                      ". The agenda status will be updated.",
+                    label: "Yes, start service",
+                    action: () => updateStatus("In progress"),
                   })
                 }
               >
-                Mulai layanan
+                Start service
                 <Icon />
               </Button>
             )}
-            {active.status === "Sudah datang" && !canStart && (
+            {active.status === "Arrived" && !canStart && (
               <p className="text-xs muted">
-                Selesaikan pelayanan yang sedang berlangsung terlebih dahulu.
+                Complete the current service first.
               </p>
             )}
-            {active.status === "Sedang dilayani" && (
+            {active.status === "In progress" && (
               <Button
                 onClick={() =>
                   setModal({
-                    title: "Selesaikan layanan?",
+                    title: "Complete service?",
                     body:
-                      "Pastikan pelayanan untuk " +
+                      "Confirm that service for " +
                       active.name +
-                      " sudah selesai. Tindakan ini hanya memperbarui sesi demo.",
-                    label: "Ya, selesaikan layanan",
-                    action: () => updateStatus("Selesai"),
+                      " is complete.",
+                    label: "Yes, complete service",
+                    action: () => updateStatus("Completed"),
                   })
                 }
               >
-                Selesaikan layanan
+                Complete service
                 <Icon as={TickIcon} />
               </Button>
             )}
-            {active.status === "Selesai" && (
+            {active.status === "Completed" && (
               <Panel>
-                <h3>Riwayat pelayanan</h3>
+                <h3>Service history</h3>
                 {active.events.map((event) => (
                   <p className="text-xs muted" key={event}>
                     {event}
@@ -489,38 +484,10 @@ export default function StaffApp() {
                 navigate("agenda");
               }}
             >
-              Kembali ke agenda
+              Back to agenda
               <Icon as={CalendarIcon} />
             </Button>
-            {active.status === "Terjadwal" && (
-              <details className="staff-demo-controls">
-                <summary>Kontrol skenario prototype</summary>
-                <p className="text-xs muted">
-                  Simulasi konfirmasi Front Desk · Bukan aksi staf.
-                </p>
-                <Button
-                  secondary
-                  onClick={() => {
-                    setAppointments((all) =>
-                      all.map((a) =>
-                        a.id === selected
-                          ? {
-                              ...a,
-                              status: "Sudah datang",
-                              events: [
-                                "Kedatangan dikonfirmasi Front Desk (simulasi).",
-                              ],
-                            }
-                          : a,
-                      ),
-                    );
-                    setToast("Kedatangan disimulasikan.");
-                  }}
-                >
-                  Simulasikan kedatangan
-                </Button>
-              </details>
-            )}
+
           </>
         );
         break;
@@ -528,43 +495,42 @@ export default function StaffApp() {
         content = (
           <>
             <DateField />
-            <h2>Jadwal kerja</h2>
-            <p className="text-xs muted">Ditetapkan oleh manajer</p>
+            <h2>Work schedule</h2>
+            <p className="text-xs muted">Set by your manager</p>
             <Shift locked />
-            <h2>Ketersediaan saya</h2>
+            <h2>My availability</h2>
             <Panel>
               <div className="between">
                 <div>
-                  <h3>Terima reservasi baru</h3>
+                  <h3>Accept new appointments</h3>
                   <p>
                     {hasSchedule
                       ? draft
-                        ? "Tersedia"
-                        : "Tidak tersedia"
-                      : "Tidak ada jadwal"}
+                        ? "Available"
+                        : "Unavailable"
+                      : "No schedule"}
                   </p>
                 </div>
                 <wired-toggle
-                  aria-label="Terima reservasi baru"
+                  aria-label="Accept new appointments"
                   disabled={!hasSchedule}
                   checked={hasSchedule && draft}
                   onChange={(e) => setDraft(e.target.checked)}
                 />
               </div>
               <p className="text-xs muted">
-                Untuk slot kosong dalam jadwal hari ini.
+                Applies to open slots in today’s schedule.
               </p>
             </Panel>
             <div className="staff-notice">
               <Icon as={CalendarIcon} size={26} />
               <div>
                 <h3>
-                  {dayAppointments.length} reservasi{" "}
-                  {hasSchedule ? "hari ini" : "pada tanggal ini"}
+                  {dayAppointments.length} appointments{" "}
+                  {hasSchedule ? "today" : "on this date"}
                 </h3>
                 <p>
-                  Perubahan ketersediaan tidak membatalkan reservasi yang sudah
-                  dikonfirmasi.
+                  Availability changes do not cancel confirmed appointments.
                 </p>
               </div>
             </div>
@@ -572,22 +538,22 @@ export default function StaffApp() {
               className="staff-link-row"
               onClick={() => navigate("agenda")}
             >
-              Lihat agenda
+              View agenda
               <Icon />
             </button>
             <Button
               disabled={!dirty || !hasSchedule}
               onClick={() => {
                 setAvailable(draft);
-                setToast("Ketersediaan berhasil disimpan.");
+                setToast("Availability saved.");
               }}
             >
-              Simpan perubahan
+              Save changes
               <Icon as={TickIcon} />
             </Button>
             {dirty && (
               <p className="text-xs muted">
-                Ada perubahan yang belum disimpan.
+                You have unsaved changes.
               </p>
             )}
           </>
@@ -603,35 +569,35 @@ export default function StaffApp() {
                 <p className="muted">Barber</p>
               </div>
             </div>
-            <h2>Penugasan</h2>
+            <h2>Assignment</h2>
             <div className="inline">
               <span className="avatar">
                 <Icon as={ShopIcon} size={30} />
               </span>
               <div>
-                <p className="text-xs muted">Tempat usaha</p>
+                <p className="text-xs muted">Business</p>
                 <h3>{OUTLET}</h3>
               </div>
             </div>
-            <h2>Informasi akun</h2>
+            <h2>Account information</h2>
             <Panel>
               <div className="staff-info-row">
                 <Icon as={UserIcon} />
-                <span>ID staf</span>
+                <span>Staff ID</span>
                 <strong>STF-004</strong>
               </div>
               <wired-divider />
               <div className="staff-info-row">
                 <Icon as={LockIcon} />
-                <span>Status akun</span>
+                <span>Account status</span>
                 <span className="staff-status">
                   <Icon as={TickIcon} size={16} />
-                  Aktif
+                  Active
                 </span>
               </div>
             </Panel>
-            <h2>Layanan</h2>
-            <p className="text-xs muted">Layanan yang ditugaskan manajer</p>
+            <h2>Services</h2>
+            <p className="text-xs muted">Services assigned by your manager</p>
             <Panel>
               <p className="inline">
                 <Icon as={CutIcon} />
@@ -644,15 +610,15 @@ export default function StaffApp() {
               </p>
             </Panel>
             <p className="text-xs muted">
-              Perubahan penugasan dikelola oleh manajer.
+              Your manager handles assignment changes.
             </p>
             <Button
               secondary
               onClick={() =>
                 setModal({
-                  title: "Keluar dari akun staf?",
-                  body: "Kamu akan keluar dari akun demo Esta. Data sesi tetap tersedia sampai halaman dimuat ulang.",
-                  label: "Ya, keluar",
+                  title: "Sign out?",
+                  body: "You will be signed out of Esta’s account.",
+                  label: "Yes, sign out",
                   action: () => {
                     setSigned(false);
                     setDraft(available);
@@ -661,7 +627,7 @@ export default function StaffApp() {
               }
             >
               <Icon as={ArrowLeftIcon} />
-              Keluar
+              Sign out
             </Button>
           </>
         );
@@ -670,72 +636,27 @@ export default function StaffApp() {
   const page = pages.find((p) => p[0] === screen);
   return (
     <div className="workspace staff-workspace">
-      <aside className="sidebar">
-        <div className="brand">
-          <span className="brand-mark">
-            <Icon as={CutIcon} size={26} />
-          </span>
-          <div>
-            care space<span>staff experience</span>
-          </div>
-        </div>
-
-        <nav aria-label="Staff prototype screens">
-          <section className="nav-group">
-            <h3>
-              <span>01</span>Your working day
-            </h3>
-            {pages.map(([id, title]) => (
-              <button
-                key={id}
-                disabled={!signed}
-                className={screen === id && signed ? "active" : ""}
-                onClick={() => navigate(id)}
-              >
-                <span>{title}</span>
-                {screen === id ? (
-                  <Icon size={16} />
-                ) : (
-                  <span className="nav-dot" />
-                )}
-              </button>
-            ))}
-          </section>
-        </nav>
-
-        <div className="sidebar-footer">
-          <Icon as={InfoIcon} />
-          <span>
-            Esta · STF-004
-            <br />
-            Session-only demo data.
-          </span>
-        </div>
-      </aside>
       <main className="canvas">
         <header className="canvas-header">
+          <a className="prototype-return" href="/">
+            All apps
+          </a>
           <div>
-            <h1>Staff prototype</h1>
+            <h1>Staff</h1>
           </div>
           <div className="staff-toolbar">
-            <a className="link text-xs" href="?app=customer">
-              Customer
-            </a>
-            <a className="link text-xs" href="?app=manager">
-              Manager
-            </a>
             <Button
               secondary
               onClick={() =>
                 setModal({
-                  title: "Reset staff demo?",
-                  body: "Semua status layanan dan perubahan ketersediaan sesi ini akan dikembalikan ke data referensi.",
-                  label: "Reset demo",
+                  title: "Reset session?",
+                  body: "All service statuses and availability changes in this session will return to their initial values.",
+                  label: "Reset session",
                   action: () => window.location.reload(),
                 })
               }
             >
-              Reset demo
+              Reset session
             </Button>
           </div>
         </header>
@@ -744,20 +665,20 @@ export default function StaffApp() {
             <div className="status-bar">
               <span>9:41</span>
               <span className="notch" />
-              <span>Demo</span>
+              <PhoneFullscreen />
             </div>
             <header className="app-header">
               {screen === "detail" && signed && (
                 <button
                   className="back"
-                  aria-label="Kembali"
+                  aria-label="Back"
                   onClick={() => navigate("agenda")}
                 >
                   <Icon as={ArrowLeftIcon} />
                 </button>
               )}
               <h1 className="app-brand">Care Space</h1>
-              <span className="badge">Staf</span>
+              <span className="badge">Staff</span>
             </header>
             <div
               className="screen"
@@ -771,7 +692,7 @@ export default function StaffApp() {
                     <h1>{page[1]}</h1>
                     {screen === "agenda" && (
                       <>
-                        <p>Selamat pagi, Esta</p>
+                        <p>Good morning, Esta</p>
                         <h3>{OUTLET}</h3>
                       </>
                     )}
@@ -789,14 +710,13 @@ export default function StaffApp() {
                 </section>
               )}
               {content}
-
             </div>
             {signed && (
-              <nav className="bottom-nav" aria-label="Navigasi staf">
+              <nav className="bottom-nav" aria-label="Staff navigation">
                 {[
                   ["agenda", "Agenda", CalendarIcon],
-                  ["availability", "Ketersediaan", ClockIcon],
-                  ["profile", "Profil", UserIcon],
+                  ["availability", "Availability", ClockIcon],
+                  ["profile", "Profile", UserIcon],
                 ].map(([id, label, icon]) => (
                   <button
                     key={id}
