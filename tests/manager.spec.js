@@ -166,7 +166,8 @@ test("manager mobile fits and bottom navigation is usable", async ({
   await expect(
     page.getByRole("link", { name: "All apps", exact: true }),
   ).toBeVisible();
-  await expect(page.locator(".sidebar")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Screen menu", exact: true })).toHaveAttribute("aria-expanded", "false");
+    await expect(page.getByRole("navigation", { name: "Screen navigation" })).toBeHidden();
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(375);

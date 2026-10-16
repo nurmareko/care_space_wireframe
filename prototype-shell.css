@@ -1,8 +1,17 @@
-/* Prototype controls live outside the app; navigation within the phone is app-native. */
+/* Shell controls never change the phone's application state or width. */
+.workspace {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
 .workspace .canvas {
   width: 100%;
+  min-width: 0;
   padding: 16px 24px;
-  height: 100dvh;
+  height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -34,9 +43,7 @@
   text-decoration: underline;
   text-underline-offset: 4px;
 }
-.workspace .canvas-header > :last-child {
-  justify-self: end;
-}
+.workspace .canvas-header > :last-child { justify-self: end; }
 .workspace .canvas-header button {
   font-size: 14px;
   min-height: 36px;
@@ -49,79 +56,103 @@
   width: 100%;
 }
 .workspace .stage .phone {
+  width: 408px;
+  max-width: 100%;
   height: 100%;
   max-height: 822px;
   min-height: 0;
 }
-.phone-fullscreen {
-  border: 0;
+.prototype-sidebar {
+  min-height: 0;
+  overflow-y: auto;
+  border-right: 1px solid #d5d5d0;
+  background: #f5f5f3;
+  font: 14px/1.4 "IBM Plex Sans", sans-serif;
+}
+.screen-menu { padding: 24px 16px; }
+.screen-menu h2 { font: 500 16px/1.4 "IBM Plex Sans", sans-serif; margin-bottom: 16px; }
+.screen-menu nav { display: grid; gap: 4px; }
+.screen-menu nav button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  min-height: 44px;
+  width: 100%;
   background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  text-align: left;
+  font: inherit;
+}
+.screen-menu nav button small { display: block; font-size: 13px; margin-top: 3px; }
+.screen-menu nav button:disabled { opacity: 0.6; }
+.screen-menu nav button:hover:not(:disabled) { background: #e9e9e4; }
+.screen-menu nav button[aria-current="page"] {
+  background: #e4e4df;
+  border-left: 3px solid #333;
+  font-weight: 500;
+}
+.zen-control, .screen-menu-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+  background: #f5f5f3;
   color: #333;
-  font: 13px "IBM Plex Sans", sans-serif;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  min-height: 32px;
-  padding: 4px;
+  border: 1px solid #b9b9b4;
+  border-radius: 4px;
+  font: 14px/1.4 "IBM Plex Sans", sans-serif;
   cursor: pointer;
 }
-.phone-fullscreen:hover { background: #eee; }
-.phone-fullscreen:focus-visible { outline: 2px solid #333; outline-offset: 2px; }
-.workspace .stage .phone:fullscreen,
-.workspace .stage .phone.phone-expanded {
-  width: 100%;
-  max-width: none;
-  height: 100dvh;
-  max-height: none;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  background: #fff;
-}
-.workspace .stage .phone.phone-expanded {
+.zen-entry { margin-bottom: 20px; width: 100%; }
+.screen-menu-toggle { display: none; }
+.zen-exit {
   position: fixed;
-  inset: 0;
-  z-index: 100;
+  top: max(6px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  z-index: 20;
+  min-height: 36px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+.workspace.zen-mode { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+.workspace.zen-mode .canvas-header,
+.prototype-sidebar[hidden] { display: none; }
+.workspace.zen-mode .canvas { padding: 48px 12px 12px; }
+.workspace.zen-mode .stage { margin: 0 auto; }
+@media (max-width: 900px) {
+  .workspace { grid-template-columns: minmax(0, 1fr); grid-template-rows: 44px minmax(0, 1fr); }
+  .prototype-sidebar { overflow: visible; border-right: 0; z-index: 15; }
+  .screen-menu-toggle { display: flex; width: 100%; border: 0; border-radius: 0; border-bottom: 1px solid #d5d5d0; }
+  .screen-menu { display: none; }
+  .screen-menu.is-open {
+    display: block;
+    position: absolute;
+    top: 44px;
+    left: 0;
+    width: min(100%, 360px);
+    max-height: calc(100dvh - 44px);
+    overflow-y: auto;
+    background: #f5f5f3;
+    border: 1px solid #b9b9b4;
+    box-shadow: 4px 8px 16px #0002;
+    padding: 16px;
+  }
 }
 @media (max-width: 680px) {
-  .workspace .canvas {
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    height: 100dvh;
-  }
+  .workspace .canvas { padding: 0; }
   .workspace .canvas-header {
-    display: grid;
-    width: 100%;
-    height: 60px;
     min-height: 60px;
-    padding: 0 16px;
+    padding: 0 12px;
     background: #f5f5f3;
-    gap: 10px;
-    flex-shrink: 0;
+    gap: 8px;
   }
-  .workspace .canvas .canvas-header h1 {
-    font-size: 14px;
-  }
-  .workspace .canvas-header button {
-    font-size: 13px;
-    min-height: 36px;
-    padding: 6px 8px;
-  }
-  .workspace .stage {
-    margin: 0;
-    min-height: 0;
-    flex: 1;
-    width: 100%;
-  }
-  .workspace .phone,
-  .workspace.manager-workspace .phone,
-  .workspace.staff-workspace .phone {
-    height: 100%;
-    max-height: none;
-    min-height: 0;
-  }
+  .workspace .canvas .canvas-header h1 { font-size: 14px; }
+  .workspace .canvas-header button { font-size: 13px; padding: 6px 8px; }
+  .workspace .stage { margin: 0 auto; }
   .workspace .canvas-header .staff-toolbar,
-  .workspace .canvas-header .manager-toolbar {
-    gap: 0;
-  }
+  .workspace .canvas-header .manager-toolbar { gap: 0; }
 }

@@ -1,50 +1,19 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
+import { ArrowNeIcon, ArrowSwIcon } from "react-doodle-icons";
 
-export default function PhoneFullscreen() {
-  const button = useRef(null);
-  const [expanded, setExpanded] = useState(false);
-
-  useEffect(() => {
-    const phone = button.current.closest(".phone");
-    const sync = () => setExpanded(document.fullscreenElement === phone);
-    const escape = (event) => {
-      if (event.key === "Escape" && phone.classList.contains("phone-expanded")) {
-        phone.classList.remove("phone-expanded");
-        setExpanded(false);
-        button.current?.focus();
-      }
-    };
-    document.addEventListener("fullscreenchange", sync);
-    document.addEventListener("keydown", escape);
-    return () => {
-      document.removeEventListener("fullscreenchange", sync);
-      document.removeEventListener("keydown", escape);
-      phone.classList.remove("phone-expanded");
-    };
-  }, []);
-
-  async function toggle() {
-    const phone = button.current.closest(".phone");
-    if (document.fullscreenElement === phone) {
-      await document.exitFullscreen();
-    } else if (expanded) {
-      phone.classList.remove("phone-expanded");
-      setExpanded(false);
-    } else {
-      try {
-        await phone.requestFullscreen();
-      } catch {
-        // Mobile browsers may not support fullscreen for arbitrary elements.
-        phone.classList.add("phone-expanded");
-        setExpanded(true);
-      }
-    }
-    button.current?.focus();
-  }
-
+// Zen mode is a shell layout, not browser fullscreen.
+export default function PhoneFullscreen({ expanded, onClick, buttonRef }) {
+  const Icon = expanded ? ArrowSwIcon : ArrowNeIcon;
   return (
-    <button ref={button} className="phone-fullscreen" onClick={toggle} aria-pressed={expanded}>
-      {expanded ? "Exit fullscreen" : "Fullscreen"}
+    <button
+      ref={buttonRef}
+      type="button"
+      className={expanded ? "zen-control zen-exit" : "zen-control zen-entry"}
+      aria-pressed={expanded}
+      onClick={onClick}
+    >
+      <Icon size={18} color="currentColor" aria-hidden="true" />
+      {expanded ? "Exit Zen mode" : "Zen mode"}
     </button>
   );
 }

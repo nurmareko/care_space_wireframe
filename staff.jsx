@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import PhoneFullscreen from "./phone-fullscreen.jsx";
+import PrototypeSidebar from "./prototype-sidebar.jsx";
 import {
   CalendarIcon,
   ClockIcon,
@@ -636,6 +636,18 @@ export default function StaffApp() {
   const page = pages.find((p) => p[0] === screen);
   return (
     <div className="workspace staff-workspace">
+      <PrototypeSidebar
+        active={signed ? screen : "signedout"}
+        items={[
+          ...pages.map(([id, label, icon]) => ({
+            id, label, icon,
+            disabled: !signed || (id === "detail" && (!active || !hasSchedule)),
+            hint: !signed ? "Sign in first" : id === "detail" && !hasSchedule ? "Choose a scheduled date first" : undefined,
+            onSelect: () => id === "detail" ? openAppointment(active) : navigate(id),
+          })),
+          ...(!signed ? [{ id: "signedout", label: "Signed out", icon: UserIcon, onSelect: () => {} }] : []),
+        ]}
+      />
       <main className="canvas">
         <header className="canvas-header">
           <a className="prototype-return" href="/">
@@ -665,7 +677,7 @@ export default function StaffApp() {
             <div className="status-bar">
               <span>9:41</span>
               <span className="notch" />
-              <PhoneFullscreen />
+              <span aria-hidden="true" />
             </div>
             <header className="app-header">
               {screen === "detail" && signed && (

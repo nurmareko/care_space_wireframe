@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import "wired-elements";
 import {
   HomeIcon,
+  FileListIcon,
   HeartIcon,
   CalendarIcon,
   UserIcon,
@@ -23,7 +24,7 @@ import {
 } from "react-doodle-icons";
 import "./style.css";
 import "./prototype-shell.css";
-import PhoneFullscreen from "./phone-fullscreen.jsx";
+import PrototypeSidebar from "./prototype-sidebar.jsx";
 
 const money = (n) => "Rp" + n.toLocaleString("id-ID");
 const shops = [
@@ -188,6 +189,7 @@ function App() {
   const [query, setQuery] = useState("");
   const [favorites, setFavorites] = useState(["kemang"]);
   const [service, setService] = useState(services[0]);
+  const [bookingShop, setBookingShop] = useState(null);
   const [stylist, setStylist] = useState("Esta");
 
   const [day, setDay] = useState(0);
@@ -263,6 +265,7 @@ function App() {
     setToast(text);
   }
   function chooseService(s) {
+    setBookingShop(shop.id);
     setService(s);
     setStylist("Esta");
     go("stylist");
@@ -1510,8 +1513,37 @@ function App() {
     "rewards",
   ];
 
+  const screenItems = [
+    ["home", "Home", HomeIcon],
+    ["welcome", "Welcome", ShopIcon],
+    ["phone", "Phone sign-in", PhoneIcon],
+    ["otp", "Phone verification", MailIcon, !/^[1-9][0-9]{8,12}$/.test(phone.replace(/\s/g, "")), "Enter a valid phone number first"],
+    ["search", "Search outlets", SearchIcon],
+    ["outlet", "Outlet details", ShopIcon],
+    ["stylist", "Choose a stylist", UserIcon, bookingShop !== shop.id, "Choose a service at this outlet first"],
+    ["schedule", "Date & time", CalendarIcon, bookingShop !== shop.id || !stylist, "Choose a service and stylist first"],
+    ["review", "Booking summary", FileListIcon, bookingShop !== shop.id || !time || (!history.includes("schedule") && screen !== "schedule"), "Choose a service, date and time first"],
+    ["success", "Appointment saved", CalendarIcon, !current, "Save an appointment first"],
+    ["favorites", "Favorites", HeartIcon],
+    ["appointments", "Appointments", CalendarIcon],
+    ["detail", "Appointment details", InfoIcon, !current, "Open or save an appointment first"],
+    ["rewards", "Rewards", GiftIcon],
+    ["profile", "Profile", UserIcon],
+    ["edit", "Edit profile", UserIcon, !signed, "Sign in first"],
+    ["language", "Language", GlobeIcon],
+    ["support", "Contact us", HeadphoneIcon],
+  ].map(([id, label, icon, disabled, hint]) => ({
+    id, label, icon, disabled, hint,
+    onSelect: () => {
+      if (id === "edit") setDraft({ ...profile });
+      if (id === "phone") setAfterLogin("home");
+      go(id);
+    },
+  }));
+
   return (
     <div className="workspace">
+      <PrototypeSidebar items={screenItems} active={screen} />
       <main className="canvas">
         <header className="canvas-header">
           <a className="prototype-return" href="/">All apps</a>
@@ -1537,7 +1569,7 @@ function App() {
             <div className="status-bar">
               <span>9:41</span>
               <span className="notch" />
-              <PhoneFullscreen />
+              <span aria-hidden="true" />
             </div>
             <header className="app-header">
               {screen !== "home" && (

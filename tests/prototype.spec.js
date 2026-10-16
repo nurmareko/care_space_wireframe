@@ -9,7 +9,7 @@ const nav = (page, name) =>
 async function backToNav(page) {
   const navigation = page.getByRole("navigation", { name: "Main navigation" });
   for (let depth = 0; depth < 10 && !(await navigation.isVisible()); depth++) {
-    await page.getByRole("button", { name: "Back", exact: true }).click();
+    await page.locator(".phone").getByRole("button", { name: "Back", exact: true }).click();
   }
   await expect(navigation).toBeVisible();
 }
@@ -202,7 +202,8 @@ test("mobile viewport stays within screen and navigation works", async ({
 }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/?app=customer");
-  await expect(page.locator(".sidebar")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Screen menu", exact: true })).toHaveAttribute("aria-expanded", "false");
+    await expect(page.getByRole("navigation", { name: "Screen navigation" })).toBeHidden();
   await expect(
     page.getByRole("link", { name: "All apps", exact: true }),
   ).toBeVisible();

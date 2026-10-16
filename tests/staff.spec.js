@@ -143,7 +143,8 @@ test("staff mobile screens fit, navigation works, and desktop screenshot renders
     fullPage: true,
   });
   await page.setViewportSize({ width: 375, height: 812 });
-  await expect(page.locator(".sidebar")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Screen menu", exact: true })).toHaveAttribute("aria-expanded", "false");
+    await expect(page.getByRole("navigation", { name: "Screen navigation" })).toBeHidden();
   await expect(
     page.getByRole("link", { name: "All apps", exact: true }),
   ).toBeVisible();

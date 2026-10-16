@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import PhoneFullscreen from "./phone-fullscreen.jsx";
+import PrototypeSidebar from "./prototype-sidebar.jsx";
 import {
   ShopIcon,
   CalendarIcon,
@@ -1178,6 +1178,15 @@ export default function ManagerApp() {
   const activePage = pages.find((p) => p[0] === screen);
   return (
     <div className="workspace manager-workspace">
+      <PrototypeSidebar
+        active={screen}
+        items={pages.map(([id, label, icon]) => ({
+          id, label, icon,
+          disabled: id === "detail" ? !item : id === "service" ? !services.length : false,
+          hint: id === "detail" ? "Select a reservation first" : undefined,
+          onSelect: () => id === "detail" ? openDetail(item) : go(id),
+        }))}
+      />
       <main className="canvas">
         <header className="canvas-header">
           <a className="prototype-return" href="/">
@@ -1207,7 +1216,7 @@ export default function ManagerApp() {
             <div className="status-bar">
               <span>9:41</span>
               <span className="notch" />
-              <PhoneFullscreen />
+              <span aria-hidden="true" />
             </div>
             <header className="app-header">
               {!["frontdesk", "reservations", "manage"].includes(screen) && (
