@@ -14,6 +14,7 @@ test("staff starts and completes checked-in service and agenda reflects status",
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/?app=staff");
+  await page.locator(".screen").getByRole("button", { name: "View my agenda", exact: true }).click();
   await screen(page)
     .getByRole("button", { name: /Drestayumna Nurmareko/ })
     .click();
@@ -46,6 +47,7 @@ test("scheduled appointment waits for Front Desk while checked-in appointments c
   page,
 }) => {
   await page.goto("/?app=staff");
+  await page.locator(".screen").getByRole("button", { name: "View my agenda", exact: true }).click();
   await screen(page)
     .getByRole("button", { name: /Bima Pratama/ })
     .click();
@@ -64,6 +66,7 @@ test("availability save persists without canceling existing appointments", async
   page,
 }) => {
   await page.goto("/?app=staff");
+  await page.locator(".screen").getByRole("button", { name: "View my agenda", exact: true }).click();
   await nav(page, "Availability");
   const save = screen(page).getByRole("button", { name: "Save changes" });
   await expect(save).toBeDisabled();
@@ -90,6 +93,7 @@ test("date selection gives empty state and read-only schedule", async ({
   page,
 }) => {
   await page.goto("/?app=staff");
+  await page.locator(".screen").getByRole("button", { name: "View my agenda", exact: true }).click();
   await page
     .getByRole("button", { name: "Sat, 10 October", exact: true })
     .click();
@@ -110,6 +114,7 @@ test("profile is read-only and sign-out blocks navigation until sign-in", async 
   page,
 }) => {
   await page.goto("/?app=staff");
+  await page.locator(".screen").getByRole("button", { name: "View my agenda", exact: true }).click();
   await nav(page, "Profile");
   await expect(screen(page)).toContainText("STF-004");
   await expect(screen(page).locator("wired-input")).toHaveCount(0);
@@ -137,6 +142,7 @@ test("staff mobile screens fit, navigation works, and desktop screenshot renders
   page,
 }) => {
   await page.goto("/?app=staff");
+  await page.locator(".screen").getByRole("button", { name: "View my agenda", exact: true }).click();
   await page.evaluate(() => document.fonts.ready);
   await page.screenshot({
     path: "test-results/staff-desktop.png",
@@ -145,9 +151,11 @@ test("staff mobile screens fit, navigation works, and desktop screenshot renders
   await page.setViewportSize({ width: 375, height: 812 });
   await expect(page.getByRole("button", { name: "Screen menu", exact: true })).toHaveAttribute("aria-expanded", "false");
     await expect(page.getByRole("navigation", { name: "Screen navigation" })).toBeHidden();
+  await page.locator(".screen-menu-toggle").click();
   await expect(
     page.getByRole("link", { name: "All apps", exact: true }),
   ).toBeVisible();
+  await page.locator(".screen-menu-toggle").click();
   for (const label of ["Agenda", "Availability", "Profile"]) {
     await nav(page, label);
     expect(

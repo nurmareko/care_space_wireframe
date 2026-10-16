@@ -2,8 +2,8 @@ import { test, expect } from "@playwright/test";
 
 const apps = [
   { id: "customer", initial: "home", screens: ["welcome", "phone", "search", "outlet", "favorites", "appointments", "rewards", "profile", "language", "support", "home"], nativeNav: "Main navigation", nativeLabel: "Profile", nativeScreen: "profile" },
-  { id: "manager", initial: "frontdesk", screens: ["reservations", "detail", "manage", "business", "services", "service", "hours", "staff", "schedule", "activity", "frontdesk"], nativeNav: "Manager navigation", nativeLabel: "Reservations", nativeScreen: "reservations" },
-  { id: "staff", initial: "agenda", screens: ["detail", "availability", "profile", "agenda"], nativeNav: "Staff navigation", nativeLabel: "Availability", nativeScreen: "availability" },
+  { id: "manager", initial: "welcome", screens: ["welcome", "reservations", "detail", "manage", "business", "services", "service", "hours", "staff", "schedule", "activity", "frontdesk"], nativeNav: "Manager navigation", nativeLabel: "Reservations", nativeScreen: "reservations" },
+  { id: "staff", initial: "welcome", screens: ["welcome", "detail", "availability", "profile", "agenda"], nativeNav: "Staff navigation", nativeLabel: "Availability", nativeScreen: "availability" },
 ];
 const menu = (page) => page.getByRole("navigation", { name: "Screen navigation", includeHidden: true });
 const item = (page, id) => menu(page).locator(`[data-screen="${id}"]`);
@@ -92,7 +92,7 @@ for (const app of apps) {
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
   });
 
-  for (const viewport of [{ width: 1280, height: 650 }, { width: 390, height: 740 }]) {
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 740 }]) {
     test(`${app.id} Zen mode at ${viewport.width}px preserves state, bounds, and focus without browser fullscreen`, async ({ page }) => {
       await page.setViewportSize(viewport);
       await page.addInitScript(() => {
@@ -109,8 +109,8 @@ for (const app of apps) {
       await page.goto(`/?app=${app.id}`);
       const mobile = viewport.width <= 900;
       const toggle = page.locator(".screen-menu-toggle");
-      const entry = page.getByRole("button", { name: "Zen mode", exact: true });
-      const exit = page.getByRole("button", { name: "Exit Zen mode", exact: true });
+      const entry = page.locator(".zen-entry");
+      const exit = page.locator(".zen-exit");
       const phone = page.locator(".phone");
       if (mobile) await toggle.click();
       const stateScreen = { customer: "search", manager: "frontdesk", staff: "availability" }[app.id];
@@ -135,13 +135,21 @@ for (const app of apps) {
       await expectBoundedPhone(page);
       const normalWidth = (await phone.boundingBox()).width;
       for (const method of ["button", "Escape"]) {
-        if (mobile) await toggle.click();
+        await expect(entry).toBeVisible();
         await expect(entry).toHaveAttribute("aria-pressed", "false");
+        await expect(page.locator(".zen-entry, .zen-exit")).toHaveCount(1);
+        await expect(page.locator(".prototype-sidebar .zen-entry")).toHaveCount(0);
+        await expect(entry).toHaveCSS("position", "fixed");
+        const entryBox = await entry.boundingBox();
+        const persistentButton = await entry.elementHandle();
         await entry.click();
         await expect(page.locator(".workspace")).toHaveClass(/zen-mode/);
         await expect(exit).toHaveAttribute("aria-pressed", "true");
         await expect(exit).toBeFocused();
-        await expect(page.locator(".canvas-header")).toBeHidden();
+        await expect(page.locator(".zen-entry, .zen-exit")).toHaveCount(1);
+        expect(await exit.boundingBox()).toEqual(entryBox);
+        expect(await exit.evaluate((node, original) => node === original, persistentButton)).toBe(true);
+        await expect(page.locator(".canvas-header")).toHaveCount(0);
         await expect(page.locator(".prototype-sidebar")).toBeHidden();
         await expect(menu(page)).toBeHidden();
         await expectBoundedPhone(page);
@@ -154,8 +162,9 @@ for (const app of apps) {
         else await page.keyboard.press("Escape");
         await expect(page.locator(".workspace")).not.toHaveClass(/zen-mode/);
         await expect(exit).toHaveCount(0);
-        await expect(mobile ? toggle : entry).toBeFocused();
-        await expect(page.locator(".canvas-header")).toBeVisible();
+        await expect(entry).toBeFocused();
+        expect(await entry.boundingBox()).toEqual(entryBox);
+        await expect(page.locator(".canvas-header")).toHaveCount(0);
         if (mobile) {
           await expect(toggle).toHaveAttribute("aria-expanded", "false");
           await expect(menu(page)).toBeHidden();

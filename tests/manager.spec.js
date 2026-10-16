@@ -32,6 +32,7 @@ test("manager check-in updates reservation and timeline through completion", asy
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/?app=manager");
+  await page.locator(".screen").getByRole("button", { name: "Open Front Desk", exact: true }).click();
   await body(page)
     .getByRole("button", { name: "Confirm arrival", exact: true })
     .click();
@@ -70,6 +71,7 @@ test("search and reservation filters handle results and empty states", async ({
   page,
 }) => {
   await page.goto("/?app=manager");
+  await page.locator(".screen").getByRole("button", { name: "Open Front Desk", exact: true }).click();
   await field(page, "Booking code").fill("missing");
   await body(page).getByRole("button", { name: "Search", exact: true }).click();
   await expect(body(page)).toContainText("Reservation not found");
@@ -89,6 +91,7 @@ test("business and service editors save without mutating reservation snapshots",
   page,
 }) => {
   await page.goto("/?app=manager");
+  await page.locator(".screen").getByRole("button", { name: "Open Front Desk", exact: true }).click();
   await manage(page, /^Business profile/);
   await field(page, "Business name").fill("Care Space Kemang Demo");
   await body(page).getByRole("button", { name: "Save changes" }).click();
@@ -125,6 +128,7 @@ test("all manager screens render and shift validation persists saved data", asyn
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/?app=manager");
+  await page.locator(".screen").getByRole("button", { name: "Open Front Desk", exact: true }).click();
   for (const label of ["Front Desk", "Reservations", "Manage"]) {
     await nav(page, label);
     await expect(body(page).locator("h1")).not.toBeEmpty();
@@ -162,10 +166,13 @@ test("manager mobile fits and bottom navigation is usable", async ({
 }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/?app=manager");
+  await page.locator(".screen").getByRole("button", { name: "Open Front Desk", exact: true }).click();
   await expect(page.locator(".manager-hero h1")).toHaveText("Front Desk");
+  await page.locator(".screen-menu-toggle").click();
   await expect(
     page.getByRole("link", { name: "All apps", exact: true }),
   ).toBeVisible();
+  await page.locator(".screen-menu-toggle").click();
   await expect(page.getByRole("button", { name: "Screen menu", exact: true })).toHaveAttribute("aria-expanded", "false");
     await expect(page.getByRole("navigation", { name: "Screen navigation" })).toBeHidden();
   expect(
@@ -187,6 +194,7 @@ test("manager mobile fits and bottom navigation is usable", async ({
 
 test("manager desktop visual capture and customer switch", async ({ page }) => {
   await page.goto("/?app=manager");
+  await page.locator(".screen").getByRole("button", { name: "Open Front Desk", exact: true }).click();
   await page.evaluate(() => document.fonts.ready);
   await page.screenshot({
     path: "test-results/manager-desktop.png",

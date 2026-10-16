@@ -27,6 +27,7 @@ test("staff secondary date picker remains operable after collapsing it", async (
   page,
 }) => {
   await page.goto("/?app=staff");
+  await page.locator(".screen").getByRole("button", { name: "View my agenda", exact: true }).click();
   const picker = page.locator(".staff-date-picker");
   await expect(picker.locator("wired-input")).toBeHidden();
   await picker.locator("summary").click();

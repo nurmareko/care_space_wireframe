@@ -1,7 +1,7 @@
 # Wireframe Prototype Rules
 
 - Build a lightweight interactive SPA; use component state for navigation, not a routing library.
-- `/` is the app chooser. Keep `?app=customer|manager|staff` as direct entry points. Each app has an All apps link, reset, and a screen-navigation sidebar alongside native app navigation. Zen mode hides the sidebar and surrounding controls, keeps the phone centered and viewport-fitted, and exits with a small control or Escape. Do not use browser fullscreen.
+- `/` is the app chooser. Keep `?app=customer|manager|staff` as direct entry points. Each app has an All apps link inside its screen-navigation sidebar alongside native app navigation; do not add an outer reset control. Zen mode hides the sidebar and surrounding controls, keeps the phone centered and viewport-fitted, and exits with the same fixed-position toggle or Escape. The toggle stays in the top-right corner in both modes. Do not use browser fullscreen.
 - The chooser uses Patrick Hand, white wired-card surfaces, doodle icons, concise role links, and a dotted background. Keep it a simple hand-drawn app selector, not a marketing page or split-screen preview.
 - Use a strict grayscale palette, white surfaces, dotted graph-paper backgrounds, and irregular hand-drawn borders.
 - Use Patrick Hand inside the app wireframes and IBM Plex Sans for the surrounding prototype navigation and headers. Default app text is 18px; no text is smaller than 13px.

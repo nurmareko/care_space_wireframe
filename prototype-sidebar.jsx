@@ -8,21 +8,20 @@ export default function PrototypeSidebar({ items, active }) {
   const container = useRef(null);
   const toggle = useRef(null);
   const entry = useRef(null);
-  const exit = useRef(null);
+
   const menuId = useId();
 
   useEffect(() => {
     const workspace = container.current.closest(".workspace");
     workspace.classList.toggle("zen-mode", zen);
-    if (zen) exit.current?.focus();
+    if (zen) entry.current?.focus();
     return () => workspace.classList.remove("zen-mode");
   }, [zen]);
 
   function leaveZen() {
     setZen(false);
     requestAnimationFrame(() => {
-      if (window.matchMedia("(max-width: 900px)").matches) toggle.current?.focus();
-      else entry.current?.focus();
+      entry.current?.focus();
     });
   }
 
@@ -58,7 +57,7 @@ export default function PrototypeSidebar({ items, active }) {
           {open ? "Close screen menu" : "Screen menu"}
         </button>
         <div id={menuId} className={`screen-menu${open ? " is-open" : ""}`}>
-          <PhoneFullscreen expanded={false} buttonRef={entry} onClick={() => { setOpen(false); setZen(true); }} />
+          <a className="prototype-return" href="/">All apps</a>
           <h2>Screens</h2>
           <nav aria-label="Screen navigation">
             {items.map(({ id, label, icon: Icon = ArrowRightIcon, onSelect, disabled, hint }) => (
@@ -86,7 +85,10 @@ export default function PrototypeSidebar({ items, active }) {
           </nav>
         </div>
       </aside>
-      {zen && <PhoneFullscreen expanded buttonRef={exit} onClick={leaveZen} />}
+      <PhoneFullscreen expanded={zen} buttonRef={entry} onClick={() => {
+        if (zen) leaveZen();
+        else { setOpen(false); setZen(true); }
+      }} />
     </>
   );
 }

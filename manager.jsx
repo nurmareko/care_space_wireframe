@@ -112,6 +112,7 @@ const initialHours = [
   "Sunday",
 ].map((day) => ({ day, open: day !== "Monday", start: "09:00", end: "21:00" }));
 const pages = [
+  ["welcome", "Welcome", ShopIcon],
   ["frontdesk", "Front Desk", UserIcon],
   ["reservations", "Reservations", CalendarIcon],
   ["detail", "Reservation details", InfoIcon],
@@ -206,7 +207,7 @@ function Modal({ value, close }) {
   );
 }
 export default function ManagerApp() {
-  const [screen, setScreen] = useState("frontdesk"),
+  const [screen, setScreen] = useState("welcome"),
     [history, setHistory] = useState([]),
     [business, setBusiness] = useState(initialBusiness),
     [businessDraft, setBusinessDraft] = useState(initialBusiness),
@@ -376,6 +377,27 @@ export default function ManagerApp() {
   };
   let content;
   switch (screen) {
+    case "welcome":
+      content = (
+        <>
+          <wired-card class="placeholder" style={{ background: "white" }}>
+            <span className="cross" />
+            <span>Salon welcome photo</span>
+          </wired-card>
+          <div className="welcome-copy" id="manager-welcome">
+            <span className="eyebrow">Your business, in one place</span>
+            <h1>
+              Welcome to<br />
+              your workspace.
+            </h1>
+            <p>Welcome customers, manage reservations, and support your team.</p>
+          </div>
+          <Button onClick={() => go("frontdesk")}>
+            <Icon as={UserIcon} /> Open Front Desk <Icon />
+          </Button>
+        </>
+      );
+      break;
     case "frontdesk":
       content = (
         <>
@@ -1188,29 +1210,7 @@ export default function ManagerApp() {
         }))}
       />
       <main className="canvas">
-        <header className="canvas-header">
-          <a className="prototype-return" href="/">
-            All apps
-          </a>
-          <div>
-            <h1>Manager</h1>
-          </div>
-          <div className="manager-toolbar">
-            <Button
-              secondary
-              onClick={() =>
-                setModal({
-                  title: "Reset manager?",
-                  body: "All changes in this session will be cleared. The original data will be restored.",
-                  label: "Reset",
-                  action: () => window.location.reload(),
-                })
-              }
-            >
-              Reset
-            </Button>
-          </div>
-        </header>
+
         <div className="stage">
           <div className="phone">
             <div className="status-bar">
@@ -1219,7 +1219,7 @@ export default function ManagerApp() {
               <span aria-hidden="true" />
             </div>
             <header className="app-header">
-              {!["frontdesk", "reservations", "manage"].includes(screen) && (
+              {!["welcome", "frontdesk", "reservations", "manage"].includes(screen) && (
                 <button className="back" aria-label="Back" onClick={back}>
                   <Icon as={ArrowLeftIcon} />
                 </button>
@@ -1233,6 +1233,7 @@ export default function ManagerApp() {
               tabIndex={-1}
               ref={scroll}
             >
+              {screen !== "welcome" && (
               <section className="manager-hero" id={"manager-" + screen}>
                 <span className="manager-hero-icon">
                   <Icon as={activePage[2]} size={34} />
@@ -1240,8 +1241,10 @@ export default function ManagerApp() {
                 <h1>{activePage[1]}</h1>
                 <p>{business.name}</p>
               </section>
+              )}
               {content}
             </div>
+            {screen !== "welcome" && (
             <nav className="bottom-nav" aria-label="Manager navigation">
               {[
                 ["frontdesk", "Front Desk", UserIcon],
@@ -1253,7 +1256,7 @@ export default function ManagerApp() {
                   className={
                     screen === id ||
                     (id === "manage" &&
-                      pages.slice(3).some((p) => p[0] === screen)) ||
+                      pages.slice(4).some((p) => p[0] === screen)) ||
                     (id === "reservations" && screen === "detail")
                       ? "active"
                       : ""
@@ -1265,6 +1268,7 @@ export default function ManagerApp() {
                 </button>
               ))}
             </nav>
+            )}
             <div className="home-indicator" />
             {toast && (
               <div className="toast" role="status">

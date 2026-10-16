@@ -204,9 +204,11 @@ test("mobile viewport stays within screen and navigation works", async ({
   await page.goto("/?app=customer");
   await expect(page.getByRole("button", { name: "Screen menu", exact: true })).toHaveAttribute("aria-expanded", "false");
     await expect(page.getByRole("navigation", { name: "Screen navigation" })).toBeHidden();
+  await page.locator(".screen-menu-toggle").click();
   await expect(
     page.getByRole("link", { name: "All apps", exact: true }),
   ).toBeVisible();
+  await page.locator(".screen-menu-toggle").click();
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(375);

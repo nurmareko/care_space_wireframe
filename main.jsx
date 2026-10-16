@@ -1545,25 +1545,7 @@ function App() {
     <div className="workspace">
       <PrototypeSidebar items={screenItems} active={screen} />
       <main className="canvas">
-        <header className="canvas-header">
-          <a className="prototype-return" href="/">All apps</a>
-          <div>
-            <h1>Care Space</h1>
-          </div>
-          <button
-            className="btn-secondary restart"
-            onClick={() =>
-              setModal({
-                title: "Reset?",
-                body: "Clear the current session and return to the initial home screen?",
-                action: () => window.location.reload(),
-                actionLabel: "Reset",
-              })
-            }
-          >
-            Reset <Icon as={ArrowLeftIcon} />
-          </button>
-        </header>
+
         <div className="stage">
           <div className="phone">
             <div className="status-bar">

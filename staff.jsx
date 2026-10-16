@@ -50,6 +50,7 @@ const initialAppointments = [
   },
 ];
 const pages = [
+  ["welcome", "Welcome", ShopIcon],
   ["agenda", "Agenda", CalendarIcon],
   ["detail", "Service details", CutIcon],
   ["availability", "Availability", ClockIcon],
@@ -118,7 +119,7 @@ function Modal({ value, close }) {
   );
 }
 export default function StaffApp() {
-  const [screen, setScreen] = useState("agenda"),
+  const [screen, setScreen] = useState("welcome"),
     [selected, setSelected] = useState("CS-1042"),
     [date, setDate] = useState(TODAY),
     [appointments, setAppointments] = useState(initialAppointments),
@@ -262,6 +263,27 @@ export default function StaffApp() {
     );
   } else
     switch (screen) {
+      case "welcome":
+        content = (
+          <>
+            <wired-card class="placeholder" style={{ background: "white" }}>
+              <span className="cross" />
+              <span>Salon team photo</span>
+            </wired-card>
+            <div className="welcome-copy" id="staff-welcome">
+              <span className="eyebrow">Ready for your day</span>
+              <h1>
+                Welcome back,<br />
+                Esta.
+              </h1>
+              <p>Check your agenda, care for your customers, and manage your availability.</p>
+            </div>
+            <Button onClick={() => navigate("agenda")}>
+              <Icon as={CalendarIcon} /> View my agenda <Icon />
+            </Button>
+          </>
+        );
+        break;
       case "agenda":
         content = (
           <>
@@ -649,29 +671,7 @@ export default function StaffApp() {
         ]}
       />
       <main className="canvas">
-        <header className="canvas-header">
-          <a className="prototype-return" href="/">
-            All apps
-          </a>
-          <div>
-            <h1>Staff</h1>
-          </div>
-          <div className="staff-toolbar">
-            <Button
-              secondary
-              onClick={() =>
-                setModal({
-                  title: "Reset session?",
-                  body: "All service statuses and availability changes in this session will return to their initial values.",
-                  label: "Reset session",
-                  action: () => window.location.reload(),
-                })
-              }
-            >
-              Reset session
-            </Button>
-          </div>
-        </header>
+
         <div className="stage">
           <div className="phone">
             <div className="status-bar">
@@ -698,7 +698,7 @@ export default function StaffApp() {
               tabIndex={-1}
               ref={scroll}
             >
-              {signed && (
+              {signed && screen !== "welcome" && (
                 <section className="staff-hero" id={"staff-" + screen}>
                   <div>
                     <h1>{page[1]}</h1>
@@ -723,7 +723,7 @@ export default function StaffApp() {
               )}
               {content}
             </div>
-            {signed && (
+            {signed && screen !== "welcome" && (
               <nav className="bottom-nav" aria-label="Staff navigation">
                 {[
                   ["agenda", "Agenda", CalendarIcon],
